@@ -1,0 +1,46 @@
+# ========================================================
+# Hackintosh Git Ignore
+# Exclude sensitive data, private credentials, and large binaries
+# ========================================================
+
+# --- Private / Sensitive Data (iServices & Local Machine) ---
+Active_EFI_Backup/
+Temp_Restore/
+*.vars
+vars/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Large OS Installers & Packages (>100MB GitHub limit) ---
+SonomaInstaller/
+Assets/
+Assets.pkg
+AutoPkg.pkg
+*.pkg
+*.dmg
+*.iso
+*.zip
+OCLP-src/
+OpenCore/
+Downloads/
+oclp_temp/
+itlwm_extract/
+Kexts_Download/
+
+# --- OpenCore & Boot Logs ---
+opencore-*.txt
+*.log
+
+# --- Windows Boot & Machine Specific Files ---
+BCD
+BCD.*
+*.p7b
+bootmgfw_orig.efi
+
+# --- Python Cache & Local Scratch Scripts ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+scratch_*.py

@@ -1,0 +1,40 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/runner/work/kext/kext/build/Release/USBToolBox.kext/Contents/MacOS/USBToolBox'
+relocations:
+  - { offsetInCU: 0x33, offset: 0x33, size: 0x8, addend: 0x0, symName: _kmod_info, symObjAddr: 0x0, symBinAddr: 0x39D0, symSize: 0x0 }
+  - { offsetInCU: 0x1DF, offset: 0x1DF, size: 0x8, addend: 0x0, symName: __realmain, symObjAddr: 0xA88, symBinAddr: 0x3A98, symSize: 0x0 }
+  - { offsetInCU: 0x1F4, offset: 0x1F4, size: 0x8, addend: 0x0, symName: __antimain, symObjAddr: 0xA90, symBinAddr: 0x3AA0, symSize: 0x0 }
+  - { offsetInCU: 0x209, offset: 0x209, size: 0x8, addend: 0x0, symName: __kext_apple_cc, symObjAddr: 0xC4, symBinAddr: 0x3A94, symSize: 0x0 }
+  - { offsetInCU: 0x26, offset: 0x238, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9MetaClassC1Ev, symObjAddr: 0x0, symBinAddr: 0x1384, symSize: 0x32 }
+  - { offsetInCU: 0x39, offset: 0x24B, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox10gMetaClassE, symObjAddr: 0x26F68, symBinAddr: 0x3AA8, symSize: 0x0 }
+  - { offsetInCU: 0xAB37, offset: 0xAD49, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9metaClassE, symObjAddr: 0x13E8, symBinAddr: 0x3070, symSize: 0x0 }
+  - { offsetInCU: 0xAB4A, offset: 0xAD5C, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox10superClassE, symObjAddr: 0x13F0, symBinAddr: 0x3078, symSize: 0x0 }
+  - { offsetInCU: 0xAB7B, offset: 0xAD8D, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9MetaClassC1Ev, symObjAddr: 0x0, symBinAddr: 0x1384, symSize: 0x32 }
+  - { offsetInCU: 0xABD4, offset: 0xADE6, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9MetaClassD1Ev, symObjAddr: 0x32, symBinAddr: 0x13B6, symSize: 0xA }
+  - { offsetInCU: 0xAC0F, offset: 0xAE21, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxC2EPK11OSMetaClass, symObjAddr: 0x3C, symBinAddr: 0x13C0, symSize: 0x3A }
+  - { offsetInCU: 0xAC5E, offset: 0xAE70, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxC1EPK11OSMetaClass, symObjAddr: 0x76, symBinAddr: 0x13FA, symSize: 0x3A }
+  - { offsetInCU: 0xACBF, offset: 0xAED1, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxD2Ev, symObjAddr: 0xB0, symBinAddr: 0x1434, symSize: 0xA }
+  - { offsetInCU: 0xACF8, offset: 0xAF0A, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxD1Ev, symObjAddr: 0xBA, symBinAddr: 0x143E, symSize: 0xA }
+  - { offsetInCU: 0xAD4D, offset: 0xAF5F, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxD0Ev, symObjAddr: 0xC4, symBinAddr: 0x1448, symSize: 0x22 }
+  - { offsetInCU: 0xADB0, offset: 0xAFC2, size: 0x8, addend: 0x0, symName: __ZNK10USBToolBox12getMetaClassEv, symObjAddr: 0xE6, symBinAddr: 0x146A, symSize: 0xE }
+  - { offsetInCU: 0xADD3, offset: 0xAFE5, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9MetaClassC2Ev, symObjAddr: 0xF4, symBinAddr: 0x1478, symSize: 0x32 }
+  - { offsetInCU: 0xAE28, offset: 0xB03A, size: 0x8, addend: 0x0, symName: __ZNK10USBToolBox9MetaClass5allocEv, symObjAddr: 0x126, symBinAddr: 0x14AA, symSize: 0x5C }
+  - { offsetInCU: 0xAE83, offset: 0xB095, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxC1Ev, symObjAddr: 0x182, symBinAddr: 0x1506, symSize: 0x4A }
+  - { offsetInCU: 0xAEC2, offset: 0xB0D4, size: 0x8, addend: 0x0, symName: __ZN10USBToolBoxC2Ev, symObjAddr: 0x1CC, symBinAddr: 0x1550, symSize: 0x4A }
+  - { offsetInCU: 0xAEE3, offset: 0xB0F5, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox24createMatchingDictionaryEv, symObjAddr: 0x216, symBinAddr: 0x159A, symSize: 0x2D2 }
+  - { offsetInCU: 0xB17F, offset: 0xB391, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox24getControllerViaMatchingEv, symObjAddr: 0x4E8, symBinAddr: 0x186C, symSize: 0x154 }
+  - { offsetInCU: 0xB2E9, offset: 0xB4FB, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox19checkClassHierarchyEP15IORegistryEntryPKc, symObjAddr: 0x63C, symBinAddr: 0x19C0, symSize: 0x70 }
+  - { offsetInCU: 0xB35F, offset: 0xB571, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox25getControllerViaIterationEv, symObjAddr: 0x6AC, symBinAddr: 0x1A30, symSize: 0xB4 }
+  - { offsetInCU: 0xB42C, offset: 0xB63E, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox14deletePropertyEP15IORegistryEntryPKc, symObjAddr: 0x760, symBinAddr: 0x1AE4, symSize: 0x3C }
+  - { offsetInCU: 0xB491, offset: 0xB6A3, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox14fixMapForTahoeEP8OSObject, symObjAddr: 0x79C, symBinAddr: 0x1B20, symSize: 0x280 }
+  - { offsetInCU: 0xB783, offset: 0xB995, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox15mergePropertiesEP15IORegistryEntry, symObjAddr: 0xA1C, symBinAddr: 0x1DA0, symSize: 0x3A4 }
+  - { offsetInCU: 0xBAFA, offset: 0xBD0C, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox15removeACPIPortsEv, symObjAddr: 0xDC0, symBinAddr: 0x2144, symSize: 0x1CE }
+  - { offsetInCU: 0xBCA6, offset: 0xBEB8, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox5probeEP9IOServicePi, symObjAddr: 0xF8E, symBinAddr: 0x2312, symSize: 0x1D8 }
+  - { offsetInCU: 0xBE2E, offset: 0xC040, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox16matchingCallbackEP12OSDictionaryP9IOServiceP10IONotifier, symObjAddr: 0x1166, symBinAddr: 0x24EA, symSize: 0x82 }
+  - { offsetInCU: 0xBF0C, offset: 0xC11E, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox17_matchingCallbackEPvS0_P9IOServiceP10IONotifier, symObjAddr: 0x11E8, symBinAddr: 0x256C, symSize: 0xE }
+  - { offsetInCU: 0xBF8D, offset: 0xC19F, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox5startEP9IOService, symObjAddr: 0x11F6, symBinAddr: 0x257A, symSize: 0x1A4 }
+  - { offsetInCU: 0xC12C, offset: 0xC33E, size: 0x8, addend: 0x0, symName: __ZN10USBToolBox9MetaClassD0Ev, symObjAddr: 0x139A, symBinAddr: 0x271E, symSize: 0xA }
+  - { offsetInCU: 0xC1AF, offset: 0xC3C1, size: 0x8, addend: 0x0, symName: __GLOBAL__sub_I_USBToolBox.cpp, symObjAddr: 0x13A4, symBinAddr: 0x2728, symSize: 0x33 }
+  - { offsetInCU: 0xC215, offset: 0xC427, size: 0x8, addend: 0x0, symName: __GLOBAL__D_a, symObjAddr: 0x13D7, symBinAddr: 0x275B, symSize: 0x11 }
+...

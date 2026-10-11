@@ -1,0 +1,12 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/runner/work/VirtualSMC/VirtualSMC/build/Release/DeviceGenerator'
+relocations:
+  - { offset: 0x27, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100000920, symSize: 0x1670 }
+  - { offset: 0x40, size: 0x8, addend: 0x0, symName: _ResourceHeader, symObjAddr: 0x3B00, symBinAddr: 0x100006180, symSize: 0x0 }
+  - { offset: 0x3BA, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100000920, symSize: 0x1670 }
+  - { offset: 0x11A0, size: 0x8, addend: 0x0, symName: __ZL10appendFileP8NSStringS0_, symObjAddr: 0x1670, symBinAddr: 0x100001F90, symSize: 0x100 }
+  - { offset: 0x12B6, size: 0x8, addend: 0x0, symName: __ZL15generateSensorsP7NSArrayP8NSStringS2_S2_, symObjAddr: 0x1770, symBinAddr: 0x100002090, symSize: 0xA90 }
+  - { offset: 0x1BC1, size: 0x8, addend: 0x0, symName: __ZL21generateSensorSmcKeysP7NSArrayP8NSString, symObjAddr: 0x2200, symBinAddr: 0x100002B20, symSize: 0x500 }
+  - { offset: 0x1F4D, size: 0x8, addend: 0x0, symName: _main.cold.1, symObjAddr: 0x2700, symBinAddr: 0x100003020, symSize: 0x1D }
+...

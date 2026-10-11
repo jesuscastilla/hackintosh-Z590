@@ -1,0 +1,11 @@
+---
+triple:          'x86_64-apple-darwin'
+binary-path:     '/Users/runner/work/VirtualSMC/VirtualSMC/build/Release/rtcread'
+relocations:
+  - { offset: 0x27, size: 0x8, addend: 0x0, symName: _rtc_connect, symObjAddr: 0x0, symBinAddr: 0x100000770, symSize: 0x120 }
+  - { offset: 0x4D, size: 0x8, addend: 0x0, symName: _rtc_connect, symObjAddr: 0x0, symBinAddr: 0x100000770, symSize: 0x120 }
+  - { offset: 0xD1, size: 0x8, addend: 0x0, symName: _rtc_read, symObjAddr: 0x120, symBinAddr: 0x100000890, symSize: 0x70 }
+  - { offset: 0x116, size: 0x8, addend: 0x0, symName: _rtc_write, symObjAddr: 0x190, symBinAddr: 0x100000900, symSize: 0x70 }
+  - { offset: 0x263, size: 0x8, addend: 0x0, symName: _rtc_verify, symObjAddr: 0x200, symBinAddr: 0x100000970, symSize: 0x3A0 }
+  - { offset: 0x37A, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x5A0, symBinAddr: 0x100000D10, symSize: 0x10 }
+...

@@ -15,6 +15,15 @@ vars/
 Thumbs.db
 desktop.ini
 
+# --- Rules files (Cline / AI agent) ---
+.clinerules/
+.clinerules.md
+.cline/
+.claude/
+.cursorrules
+rules.md
+RULES.md
+
 # --- Large OS Installers & Packages (>100MB GitHub limit) ---
 SonomaInstaller/
 Assets/

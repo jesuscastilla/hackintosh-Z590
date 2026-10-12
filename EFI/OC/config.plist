@@ -1465,7 +1465,7 @@
 				<string>-v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0</string>
 				<key>csr-active-config</key>
 				<data>
-				AwoAAA==
+				/w8AAA==
 				</data>
 				<key>prev-lang:kbd</key>
 				<data>

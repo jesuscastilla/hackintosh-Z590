@@ -7,6 +7,7 @@
 Active_EFI_Backup/
 Temp_Restore/
 EFI_Backup_*/
+ESP_Backup_*/
 EFI/OC/*.bak*
 *.vars
 vars/

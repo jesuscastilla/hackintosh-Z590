@@ -1,119 +1,90 @@
-# Hackintosh macOS Sonoma 14.x — ASUS PRIME Z590-P WIFI + i5-11600K + GTX 970
+# Hackintosh — macOS Sonoma en un ASUS Z590
 
-> [!WARNING]
-> **DISCLAIMER LEGAL Y DE RESPONSABILIDAD / LEGAL DISCLAIMER:**  
-> Este proyecto y la documentación contenida en este repositorio han sido desarrollados **exclusivamente con fines educativos, de investigación, experimentación y comprobación técnica de interoperabilidad de hardware**.  
->  
-> La instalación, modificación y ejecución de macOS en hardware que no sea de marca Apple incumple de manera explícita el **Acuerdo de Licencia de Usuario Final (EULA)** de Apple Inc. (específicamente la sección 2.J). En diversas jurisdicciones, esta práctica puede ser considerada una violación de los términos de servicio, propiedad intelectual y derechos de autor.  
->  
-> Ni el autor ni los colaboradores promueven la vulneración de licencias ni se hacen responsables de cualquier uso indebido, consecuencias legales, pérdida de datos o daños en el hardware derivados del uso de los archivos, scripts o guías aquí compartidos. Procede bajo tu propia responsabilidad.
+Mi Hackintosh personal: macOS Sonoma 14.x corriendo sobre un ASUS PRIME Z590-P WIFI con un i5-11600K y una GTX 970, en doble arranque con Windows 11. OpenCore + rEFInd y aceleración gráfica vía OpenCore Legacy Patcher.
 
----
+## Descargo
 
-## Especificaciones técnicas del hardware
+Este repositorio es educativo y experimental. Instalar macOS en hardware que no es de Apple incumple el EULA de Apple (sección 2.J) y, según el país, puede rozar lo ilegal. No animo a saltarse licencias ni me hago responsable del uso que le des. Tú decides.
 
-| Componente | Modelo / Especificación | Estado y Notas |
-| :--- | :--- | :--- |
-| **Procesador (CPU)** | Intel Core i5-11600K @ 3.90 GHz (Rocket Lake 11ª Gen, 6C/12T) | Spoof de CPUID a Comet Lake (`0x0A0655`) |
-| **Placa Base** | ASUS PRIME Z590-P WIFI (LGA1200, Chipset Z590) | Quirks específicos de ASUS (`UpdateSMBIOSMode=Custom`) |
-| **Tarjeta Gráfica (dGPU)** | NVIDIA GeForce GTX 970 4GB (Arquitectura Maxwell) | Aceleración gráfica mediante OCLP (Nvidia Web Drivers) |
-| **Gráfica Integrada (iGPU)** | Intel UHD Graphics 750 | Deshabilitada (`disable-gpu = 01000000`), sin soporte nativo en macOS |
-| **Memoria RAM** | 32 GB DDR4 | Reconocida automáticamente |
-| **Almacenamiento** | Samsung SSD 990 PRO NVMe 1TB / Migración a SSD Samsung EVO | Dual Boot con Windows 11 + macOS Sonoma APFS |
-| **Ethernet** | Realtek RTL8125 2.5 GbE PCIe | Funcionando al 100% con `LucyRTL8125Ethernet.kext` |
-| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi M.2) | Operativo con `itlwm.kext` + HeliPort |
-| **Bluetooth** | Intel AX201 Bluetooth | Operativo con `IntelBluetoothFirmware`, `IntelBTPatcher` y `BlueToolFixup` |
-| **Audio** | Realtek ALC897 | Salidas de línea y panel frontal con `AppleALC.kext` (`alcid=11`) |
-| **Gestor de Arranque** | OpenCore 1.0.x + rEFInd (Tema Glassy) | Menú dual boot automático inmune a resets de NVRAM |
-| **SMBIOS** | `iMac19,1` | iMessage, FaceTime y servicios de iCloud operativos |
+## Hardware
 
----
+| Componente | Modelo | Notas |
+|---|---|---|
+| CPU | Intel Core i5-11600K (Rocket Lake) | CPUID espofeado a Comet Lake |
+| Placa | ASUS PRIME Z590-P WIFI (LGA1200) | `UpdateSMBIOSMode=Custom` |
+| GPU | NVIDIA GTX 970 4 GB (Maxwell) | Aceleración con OCLP (Web Drivers) |
+| iGPU | Intel UHD 750 | Desactivada, sin soporte nativo |
+| RAM | 32 GB DDR4 | — |
+| Disco | Samsung 990 PRO NVMe 1 TB | Windows 11 + macOS (APFS) |
+| Ethernet | Realtek RTL8125 2.5 GbE | `LucyRTL8125Ethernet.kext` |
+| Wi-Fi | Intel AX201 (CNVi) | `itlwm.kext` + HeliPort |
+| Bluetooth | Intel AX201 | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
+| Audio | Realtek ALC897 | `AppleALC.kext` (`alcid=11`) |
+| Arranque | OpenCore 1.0.x + rEFInd | Dual boot inmune a resets de NVRAM |
+| SMBIOS | `iMac19,1` | iMessage, FaceTime e iCloud OK |
 
-## Estado de compatibilidad
+## Qué funciona
 
-* [x] **Aceleración Gráfica:** Plena (Metal / OpenGL parcheado vía OpenCore Legacy Patcher).
-* [x] **Red Ethernet 2.5G:** Totalmente funcional a máxima velocidad.
-* [x] **Wi-Fi y Bluetooth Intel:** Conexión a redes, periféricos (auriculares, teclado, ratón) operativos.
-* [x] **Servicios Apple (iServices):** iCloud, App Store, iMessage y FaceTime funcionales.
-* [x] **Mapeo USB:** Puertos USB 2.0, USB 3.0, Tipo-C y cabezales internos mapeados con `UTBMap.kext`.
-* [x] **Arranque Dual Limpio:** Menú gráfico rEFInd seleccionable entre Windows 11 y macOS.
-* [x] **Protección contra NVRAM Reset:** Arranque persistente configurado en `\EFI\Microsoft\Boot`.
-* [!] **Reposo Profundo (S3 Sleep):** Las gráficas Maxwell (GTX 970) bajo Sonoma no soportan la suspensión profunda de hardware (la GPU no despierta). Se utiliza **Reposo de Pantalla (Display Sleep)** para ahorro de energía sin congelación.
+- Aceleración gráfica completa (Metal/OpenGL vía OCLP).
+- Ethernet 2.5G, Wi-Fi y Bluetooth Intel.
+- Servicios de Apple (iCloud, App Store, iMessage, FaceTime).
+- Mapeo USB (2.0, 3.0, Tipo-C y cabezales internos).
+- Dual boot con menú gráfico rEFInd.
 
----
+Lo único que se resiste es el **reposo profundo (S3)**: las Maxwell no despiertan bien en Sonoma, así que uso reposo de pantalla y listo.
 
-## Arquitectura de la configuración OpenCore
+## Configuración de OpenCore
 
-### 1. Spoof de CPU (Rocket Lake 11ª Gen)
-Apple nunca comercializó ordenadores con procesadores Intel Rocket Lake (11ª generación). Para que el kernel XNU arranque en un i5-11600K, se simula un procesador Comet Lake (10ª generación) en la sección `Kernel -> Emulate`:
-* **Cpuid1Data:** `55060A00 00000000 00000000 00000000` (`0x0A0655`)
-* **Cpuid1Mask:** `FFFFFFFF 00000000 00000000 00000000`
+### Spoof de CPU
 
-### 2. Tablas ACPI
-* `SSDT-AWAC.aml`: Habilita el RTC clásico en placas modernas serie 400/500 desactivando AWAC.
-* `SSDT-EC-USBX-DESKTOP.aml`: Provee un dispositivo Embedded Controller dummy (`EC`) y gestión de energía para USB.
-* `SSDT-PLUG-DRTNIA.aml`: Permite a macOS gestionar la energía del procesador (plugin-type = 1).
-* `SSDT-RHUB.aml`: Inicialización del Root Hub USB en la placa base.
+Apple nunca sacó equipos con Rocket Lake (11ª gen), así que en `Kernel → Emulate` simulo un Comet Lake:
 
-### 3. Kexts clave
-1. `Lilu.kext` & `VirtualSMC.kext`: Capa base del sistema y emulación SMC.
-2. `AMFIPass.kext`: Sustituye al boot-arg `amfi=0x80`; permite la inyección de controladores heredados (OCLP) en Sonoma.
-3. `WhateverGreen.kext`: Control de framebuffers y compatibilidad de GPU.
-4. `AppleALC.kext`: Inyección de audio (layout `alcid=11`).
-5. `SMCProcessor.kext` & `SMCSuperIO.kext`: Monitorización térmica de CPU y ventiladores.
-6. `LucyRTL8125Ethernet.kext`: Driver nativo para la controladora Realtek 2.5GbE.
-7. `USBToolBox.kext` & `UTBMap.kext`: Inyección limpia de puertos USB con cabezales internos (`255`) para Bluetooth.
-8. `itlwm.kext`: Driver para la tarjeta Wi-Fi Intel AX201.
-9. `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`: Pila completa de Bluetooth Intel en Sonoma.
-10. `NVMeFix.kext`: Gestión de energía autónoma para discos NVMe.
-11. `RestrictEvents.kext`: Corrige el nombre del CPU (Rocket Lake spoofeado) y silencia avisos en "Acerca de este Mac".
-12. `HibernationFixup.kext`: Estabilidad del ciclo de reposo/hibernación.
+```
+Cpuid1Data: 55060A00 00000000 00000000 00000000   (0x0A0655)
+Cpuid1Mask: FFFFFFFF 00000000 00000000 00000000
+```
 
-### 4. Parches de NVRAM y SIP para OCLP
-* **boot-args:**  
-  `-v keepsyms=1 debug=0x100 alcid=11 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0`
-  * `AMFIPass.kext` + `ipc_control_port_options=0`: Sustituyen a `amfi=0x80` para permitir la inyección de librerías de controladores heredados en Sonoma.
-  * `nvda_drv_vrl=1`, `ngfxcompat=1`, `ngfxgl=1`: Habilitación y compatibilidad de controladores Nvidia Web Drivers.
-* **csr-active-config (SIP):**  
-  Configurado en `030A0000` (`0xa03`). Permite a OpenCore Legacy Patcher modificar el volumen APFS sellado sin desproteger completamente el sistema. Se añade `csr-active-config` en `NVRAM -> Delete` para garantizar que la placa aplique el valor en cada arranque.
+### Tablas ACPI
 
-### 5. Ajustes adicionales
-* **Resolución UEFI:** `3840x2160@60` para pantalla 4K (handoff coherente con rEFInd, que arranca en resolución nativa `max`).
-* **FileVault deshabilitado:** `ProtocolOverrides -> FirmwareVolume = false` (no se usa FileVault).
-* **`ProvideCurrentCpuInfo = true`:** mejora el power management del CPU Rocket Lake spoofeado a Comet Lake.
+- `SSDT-AWAC.aml` — habilita el RTC clásico.
+- `SSDT-EC-USBX-DESKTOP.aml` — EC dummy y energía USB.
+- `SSDT-PLUG-DRTNIA.aml` — gestión de energía del procesador.
+- `SSDT-RHUB.aml` — inicializa el root hub USB.
 
----
+### Kexts
 
-## Doble arranque con rEFInd (tema Glassy)
+`Lilu` y `VirtualSMC` de base; `AMFIPass` (sustituye al boot-arg `amfi=0x80`), `WhateverGreen`, `AppleALC`, `SMCProcessor`/`SMCSuperIO`, `LucyRTL8125Ethernet`, `USBToolBox`/`UTBMap`, `itlwm`, la pila Bluetooth de Intel, `NVMeFix`, `RestrictEvents` (nombre de CPU y avisos) y `HibernationFixup` (estabilidad de reposo).
 
-Para evitar que el BIOS de ASUS sobreescriba las entradas UEFI tras un reinicio de NVRAM o actualización de Windows:
-1. `refind_x64.efi` se sitúa en `\EFI\Microsoft\Boot\bootmgfw.efi` (la ruta predeterminada del firmware para arrancar Windows).
-2. El archivo original de Windows se renombra a `bootmgfw_orig.efi`.
-3. El tema `rEFInd-glassy` se aloja directamente en `\EFI\Microsoft\Boot\themes\rEFInd-glassy` y en `\EFI\refind\themes\rEFInd-glassy`.
-4. El archivo de configuración define dos entradas limpias con iconos personalizados para Windows y macOS.
-5. El picker de OpenCore está desactivado (`ShowPicker=false`): rEFInd es el único menú. Para mostrar el picker de OC en caso de emergencia, mantener `Option`/`Alt` en el arranque (`PollAppleHotKeys=true`).
+### NVRAM y SIP
 
----
+`boot-args`:
 
-## Flujo de actualización del sistema y Safari (OCLP)
+```
+-v keepsyms=1 debug=0x100 alcid=11 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0
+```
 
-Cuando macOS Sonoma muestra una actualización de Safari o del sistema:
-1. Abrir **OpenCore Legacy Patcher**.
-2. Seleccionar **Post-Install Root Patch** y pulsar en **Revert Root Patches**.
-3. Reiniciar el sistema (iniciará temporalmente en modo gráfico VESA básico sin aceleración).
-4. Ir a **Ajustes del Sistema > General > Actualización de software** e instalar la actualización con el precinto del sistema restaurado.
-5. Tras el reinicio, abrir **OpenCore Legacy Patcher**, pulsar en **Start Root Patching** y reiniciar para restaurar la aceleración gráfica.
+`AMFIPass.kext` + `ipc_control_port_options=0` sustituyen a `amfi=0x80` para inyectar los drivers heredados de Nvidia; `nvda_drv_vrl=1`, `ngfxcompat=1` y `ngfxgl=1` habilitan los Web Drivers. El SIP (`csr-active-config`) va en `030A0000` para que OCLP parchee el volumen sellado sin desprotegerlo del todo.
 
----
+Otros ajustes: resolución UEFI `3840x2160@60` (pantalla 4K), `FirmwareVolume=false` (sin FileVault) y `ProvideCurrentCpuInfo=true` (power management del CPU espofeado).
 
-## Instrucciones para replicar este repositorio
+## Doble arranque con rEFInd
+
+Para que la BIOS de ASUS no pise las entradas UEFI al resetear la NVRAM:
+
+1. `refind_x64.efi` se coloca en `\EFI\Microsoft\Boot\bootmgfw.efi`, la ruta por defecto que usa el firmware para arrancar Windows.
+2. El bootloader original de Windows se renombra a `bootmgfw_orig.efi`.
+3. El tema `rEFInd-glassy` vive en `\EFI\Microsoft\Boot\themes\` y `\EFI\refind\themes\`.
+4. Dos entradas con iconos propios, una para Windows y otra para macOS.
+5. El picker de OpenCore está desactivado (`ShowPicker=false`): rEFInd es el único menú. Para verlo en una emergencia, mantén `Option`/`Alt` al arrancar (`PollAppleHotKeys=true`).
+
+## Actualizar macOS o Safari
+
+1. Abre OCLP → **Revert Root Patches**.
+2. Reinicia (arranca en modo VESA, sin aceleración).
+3. Instala la actualización desde *Ajustes → General → Actualización de software*.
+4. Tras reiniciar, OCLP → **Start Root Patching** y otro reinicio.
+
+## Replicar el build
 
 > [!IMPORTANT]
-> **Generación de credenciales únicas para iServices:**  
-> Por motivos de seguridad y privacidad, el archivo `config.plist` de este repositorio tiene los números de serie sanitizados con marcadores de posición (`GENERATE_YOUR_OWN_SERIAL`, `GENERATE_YOUR_OWN_MLB`, etc.).  
->  
-> Antes de arrancar la EFI en tu ordenador o iniciar sesión en tu cuenta de Apple:
-> 1. Descarga la herramienta **GenSMBIOS**.
-> 2. Selecciona el modelo **iMac19,1**.
-> 3. Rellena los campos `SystemSerialNumber`, `MLB` y `SystemUUID` en la sección `PlatformInfo -> Generic`.
-> 4. Inyecta en el campo `ROM` la dirección MAC de tu tarjeta de red Ethernet sin dos puntos (`:`).
+> El `config.plist` trae los seriales sanitizados (`GENERATE_YOUR_OWN_SERIAL`, etc.). Antes de arrancar esta EFI o iniciar sesión en tu Apple ID, genera los tuyos con **GenSMBIOS** (modelo `iMac19,1`) y rellena `SystemSerialNumber`, `MLB` y `SystemUUID` en `PlatformInfo → Generic`. En `ROM` pon la MAC de tu Ethernet sin los dos puntos.

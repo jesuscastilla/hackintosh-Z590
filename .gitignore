@@ -6,6 +6,8 @@
 # --- Private / Sensitive Data (iServices & Local Machine) ---
 Active_EFI_Backup/
 Temp_Restore/
+EFI_Backup_*/
+EFI/OC/*.bak*
 *.vars
 vars/
 .DS_Store

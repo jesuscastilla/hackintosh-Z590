@@ -10,7 +10,7 @@
 
 ---
 
-## 🖥️ Especificaciones Técnicas del Hardware
+## Especificaciones técnicas del hardware
 
 | Componente | Modelo / Especificación | Estado y Notas |
 | :--- | :--- | :--- |
@@ -29,7 +29,7 @@
 
 ---
 
-## 📊 Estado de Compatibilidad
+## Estado de compatibilidad
 
 * [x] **Aceleración Gráfica:** Plena (Metal / OpenGL parcheado vía OpenCore Legacy Patcher).
 * [x] **Red Ethernet 2.5G:** Totalmente funcional a máxima velocidad.
@@ -42,7 +42,7 @@
 
 ---
 
-## ⚙️ Arquitectura de la Configuración OpenCore
+## Arquitectura de la configuración OpenCore
 
 ### 1. Spoof de CPU (Rocket Lake 11ª Gen)
 Apple nunca comercializó ordenadores con procesadores Intel Rocket Lake (11ª generación). Para que el kernel XNU arranque en un i5-11600K, se simula un procesador Comet Lake (10ª generación) en la sección `Kernel -> Emulate`:
@@ -55,38 +55,47 @@ Apple nunca comercializó ordenadores con procesadores Intel Rocket Lake (11ª g
 * `SSDT-PLUG-DRTNIA.aml`: Permite a macOS gestionar la energía del procesador (plugin-type = 1).
 * `SSDT-RHUB.aml`: Inicialización del Root Hub USB en la placa base.
 
-### 3. Kexts Clave
+### 3. Kexts clave
 1. `Lilu.kext` & `VirtualSMC.kext`: Capa base del sistema y emulación SMC.
-2. `WhateverGreen.kext`: Control de framebuffers y compatibilidad de GPU.
-3. `AppleALC.kext`: Inyección de audio (layout `alcid=11`).
-4. `SMCProcessor.kext` & `SMCSuperIO.kext`: Monitorización térmica de CPU y ventiladores.
-5. `LucyRTL8125Ethernet.kext`: Driver nativo para la controladora Realtek 2.5GbE.
-6. `USBToolBox.kext` & `UTBMap.kext`: Inyección limpia de puertos USB con cabezales internos (`255`) para Bluetooth.
-7. `itlwm.kext`: Driver para la tarjeta Wi-Fi Intel AX201.
-8. `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`: Pila completa de Bluetooth Intel en Sonoma.
-9. `NVMeFix.kext`: Gestión de energía autónoma para discos NVMe.
+2. `AMFIPass.kext`: Sustituye al boot-arg `amfi=0x80`; permite la inyección de controladores heredados (OCLP) en Sonoma.
+3. `WhateverGreen.kext`: Control de framebuffers y compatibilidad de GPU.
+4. `AppleALC.kext`: Inyección de audio (layout `alcid=11`).
+5. `SMCProcessor.kext` & `SMCSuperIO.kext`: Monitorización térmica de CPU y ventiladores.
+6. `LucyRTL8125Ethernet.kext`: Driver nativo para la controladora Realtek 2.5GbE.
+7. `USBToolBox.kext` & `UTBMap.kext`: Inyección limpia de puertos USB con cabezales internos (`255`) para Bluetooth.
+8. `itlwm.kext`: Driver para la tarjeta Wi-Fi Intel AX201.
+9. `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`: Pila completa de Bluetooth Intel en Sonoma.
+10. `NVMeFix.kext`: Gestión de energía autónoma para discos NVMe.
+11. `RestrictEvents.kext`: Corrige el nombre del CPU (Rocket Lake spoofeado) y silencia avisos en "Acerca de este Mac".
+12. `HibernationFixup.kext`: Estabilidad del ciclo de reposo/hibernación.
 
 ### 4. Parches de NVRAM y SIP para OCLP
 * **boot-args:**  
-  `-v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0`
-  * `amfi=0x80` & `ipc_control_port_options=0`: Imprescindibles para permitir la inyección de librerías de controladores heredados en Sonoma.
+  `-v keepsyms=1 debug=0x100 alcid=11 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0`
+  * `AMFIPass.kext` + `ipc_control_port_options=0`: Sustituyen a `amfi=0x80` para permitir la inyección de librerías de controladores heredados en Sonoma.
   * `nvda_drv_vrl=1`, `ngfxcompat=1`, `ngfxgl=1`: Habilitación y compatibilidad de controladores Nvidia Web Drivers.
 * **csr-active-config (SIP):**  
   Configurado en `030A0000` (`0xa03`). Permite a OpenCore Legacy Patcher modificar el volumen APFS sellado sin desproteger completamente el sistema. Se añade `csr-active-config` en `NVRAM -> Delete` para garantizar que la placa aplique el valor en cada arranque.
 
+### 5. Ajustes adicionales
+* **Resolución UEFI:** `3840x2160@60` para pantalla 4K (handoff coherente con rEFInd, que arranca en resolución nativa `max`).
+* **FileVault deshabilitado:** `ProtocolOverrides -> FirmwareVolume = false` (no se usa FileVault).
+* **`ProvideCurrentCpuInfo = true`:** mejora el power management del CPU Rocket Lake spoofeado a Comet Lake.
+
 ---
 
-## 🎨 Doble Arranque con rEFInd (Tema Glassy)
+## Doble arranque con rEFInd (tema Glassy)
 
 Para evitar que el BIOS de ASUS sobreescriba las entradas UEFI tras un reinicio de NVRAM o actualización de Windows:
 1. `refind_x64.efi` se sitúa en `\EFI\Microsoft\Boot\bootmgfw.efi` (la ruta predeterminada del firmware para arrancar Windows).
 2. El archivo original de Windows se renombra a `bootmgfw_orig.efi`.
 3. El tema `rEFInd-glassy` se aloja directamente en `\EFI\Microsoft\Boot\themes\rEFInd-glassy` y en `\EFI\refind\themes\rEFInd-glassy`.
 4. El archivo de configuración define dos entradas limpias con iconos personalizados para Windows y macOS.
+5. El picker de OpenCore está desactivado (`ShowPicker=false`): rEFInd es el único menú. Para mostrar el picker de OC en caso de emergencia, mantener `Option`/`Alt` en el arranque (`PollAppleHotKeys=true`).
 
 ---
 
-## 🔄 Flujo de Actualización del Sistema y Safari (OCLP)
+## Flujo de actualización del sistema y Safari (OCLP)
 
 Cuando macOS Sonoma muestra una actualización de Safari o del sistema:
 1. Abrir **OpenCore Legacy Patcher**.
@@ -97,7 +106,7 @@ Cuando macOS Sonoma muestra una actualización de Safari o del sistema:
 
 ---
 
-## ⚠️ Instrucciones para Replicar este Repositorio
+## Instrucciones para replicar este repositorio
 
 > [!IMPORTANT]
 > **Generación de credenciales únicas para iServices:**  

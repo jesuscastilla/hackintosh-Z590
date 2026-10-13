@@ -26,7 +26,7 @@ Personal Hackintosh build: macOS Sonoma 14.x running on an **ASUS PRIME Z590-P W
 | **Bluetooth** | Intel AX201 Bluetooth | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
 | **Audio** | Realtek ALC897 | `AppleALC.kext` (`alcid=11`) |
 | **Bootloader** | OpenCore 1.0.x + rEFInd | Dual-boot immune to NVRAM / CMOS resets |
-| **SMBIOS** | `iMac20,1` | Full iServices (iMessage, FaceTime, iCloud) |
+| **SMBIOS** | `iMac19,1` | Full iServices (iMessage, FaceTime, iCloud) |
 | **macOS** | Sonoma 14.4.x | APFS root with OCLP legacy GPU patches |
 
 ---
@@ -132,6 +132,6 @@ Because the Nvidia Maxwell GPU requires OCLP root patches on the sealed system s
 > 
 > Before booting or signing into your Apple ID:
 > 1. Download **GenSMBIOS**.
-> 2. Generate a new serial set for the model **`iMac20,1`**.
+> 2. Generate a new serial set for the model **`iMac19,1`**.
 > 3. Fill in `SystemSerialNumber`, `MLB`, and `SystemUUID` under `PlatformInfo → Generic`.
 > 4. Under `ROM`, insert your motherboard's physical Ethernet MAC address (as hex bytes without colons).

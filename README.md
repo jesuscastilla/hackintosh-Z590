@@ -135,3 +135,15 @@ Because the Nvidia Maxwell GPU requires OCLP root patches on the sealed system s
 > 2. Generate a new serial set for the model **`iMac20,1`**.
 > 3. Fill in `SystemSerialNumber`, `MLB`, and `SystemUUID` under `PlatformInfo → Generic`.
 > 4. Under `ROM`, insert your motherboard's physical Ethernet MAC address (as hex bytes without colons).
+
+---
+
+## Maintenance & Changelog
+
+### [14-10-2026] — Windows EFI Partition Purge and Reconstruction
+- **ESP Sanitization**: Completely wiped all non-Windows assets from the primary NVMe EFI System Partition (Disk 0, Partition 1). Removed residual rEFInd installations, custom glassy themes, OpenCore debug logs, and macOS filesystem artifacts (`.Spotlight-V100`, `.fseventsd`, etc.).
+- **Partition Type Correction**: Corrected Disk 0 Partition 1 GPT type from Basic Data Partition (`ebd0a0a2-b9e5-4433-87c0-68b6b72699c7`) to standard EFI System Partition GUID (`c12a7328-f81f-11d2-ba4b-00a0c93ec93b`).
+- **Filesystem Health**: Executed `chkdsk /F` on the EFI volume, resolving dirty flags and restoring operational health to `Healthy / OK`.
+- **UEFI Boot Reconstruction**: Re-deployed authentic Windows 11 bootloader binaries and generated a pristine BCD hive using `bcdboot C:\Windows /s <ESP> /f UEFI`. Re-registered Windows Recovery Environment (WinRE) via `reagentc`.
+- **NVRAM Firmware Cleanup**: Purged stale NVRAM boot entries (`rEFInd`, duplicate `OpenCore` pointing to Disk 0, and duplicate `Windows Boot Manager` on Disk 3). Placed genuine `Windows Boot Manager` (`\EFI\Microsoft\Boot\bootmgfw.efi`) at the primary position in `{fwbootmgr}` displayorder.
+

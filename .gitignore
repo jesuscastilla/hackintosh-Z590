@@ -56,3 +56,4 @@ __pycache__/
 *.pyo
 *.pyd
 scratch_*.py
+.vscode/settings.json

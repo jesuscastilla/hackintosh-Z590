@@ -30,10 +30,24 @@ all: kext tool
 
 kext: $(KEXT_BINARY)
 
-$(KEXT_BINARY): ../kext/src/MaxwellProbe.cpp ../kext/src/MaxwellBiosI2C.cpp ../kext/src/MaxwellProbe.hpp ../kext/include/MaxwellBiosI2C.h ../kext/Info.plist
+KEXT_SRCS := \
+	../kext/src/MaxwellProbe.cpp \
+	../kext/src/MaxwellBiosI2C.cpp \
+	../kext/src/MaxwellEvoDisp.cpp \
+	../kext/src/MaxwellFramebuffer.cpp
+
+KEXT_HDRS := \
+	../kext/include/gm204_regs.h \
+	../kext/include/nvkm_osx_shim.h \
+	../kext/include/MaxwellBiosI2C.h \
+	../kext/include/MaxwellEvoDisp.h \
+	../kext/src/MaxwellProbe.hpp \
+	../kext/src/MaxwellFramebuffer.hpp
+
+$(KEXT_BINARY): $(KEXT_SRCS) $(KEXT_HDRS) ../kext/Info.plist
 	mkdir -p $(KEXT_BUNDLE)/Contents/MacOS
 	cp ../kext/Info.plist $(KEXT_PLIST)
-	$(CXX) $(CXXFLAGS) ../kext/src/MaxwellProbe.cpp ../kext/src/MaxwellBiosI2C.cpp $(LDFLAGS) -o $(KEXT_BINARY)
+	$(CXX) $(CXXFLAGS) $(KEXT_SRCS) $(LDFLAGS) -o $(KEXT_BINARY)
 	codesign --force --sign - $(KEXT_BUNDLE) || true
 
 tool: maxwell_info

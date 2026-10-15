@@ -132,7 +132,30 @@ bool org_hackintosh_MaxwellProbe::probeHardwareGM204()
     if (vbiosOk) {
         publishPhase2Topology();
     }
+
+    if (nvkm_evo_probe_state(&fNvDev, &fEvoState)) {
+        publishPhase3EvoState();
+    }
     return true;
+}
+
+void org_hackintosh_MaxwellProbe::publishPhase3EvoState()
+{
+    u8 ph = (fEvoState.primary_head >= 0) ? (u8)fEvoState.primary_head : 0;
+    const nvkm_evo_head_state &hs = fEvoState.heads[ph];
+
+    nvkm_info("EVO PDISP state: primaryHead=%u active=%d res=%ux%u@%uHz pitch=%u fbOff=0x%llx SOR=%d\n",
+              ph, hs.active ? 1 : 0, hs.width, hs.height, hs.refresh_hz,
+              hs.pitch, hs.fb_vram_offset, hs.bound_sor);
+
+    setProperty("NVKM_EVO_HeadMask", fEvoState.head_mask, 8);
+    setProperty("NVKM_EVO_PrimaryHead", ph, 8);
+    setProperty("NVKM_EVO_ActiveWidth", hs.width, 16);
+    setProperty("NVKM_EVO_ActiveHeight", hs.height, 16);
+    setProperty("NVKM_EVO_ActiveRefreshHz", hs.refresh_hz, 16);
+    setProperty("NVKM_EVO_ActivePitch", hs.pitch, 32);
+    setProperty("NVKM_EVO_ScanoutOffset", hs.fb_vram_offset, 64);
+    setProperty("NVKM_EVO_BoundSOR", (uint32_t)(hs.bound_sor >= 0 ? hs.bound_sor : 0xff), 8);
 }
 
 void org_hackintosh_MaxwellProbe::publishPhase2Topology()

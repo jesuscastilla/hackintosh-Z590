@@ -15,6 +15,7 @@
 #include "../include/gm204_regs.h"
 #include "../include/nvkm_osx_shim.h"
 #include "../include/MaxwellBiosI2C.h"
+#include "../include/MaxwellEvoDisp.h"
 
 class org_hackintosh_MaxwellProbe : public IOService
 {
@@ -25,9 +26,11 @@ private:
     IOMemoryMap            *fBAR0Map;
     nvkm_osx_device         fNvDev;
     nvkm_bios_topology      fTopology;
+    nvkm_evo_disp_state     fEvoState;
 
     bool                    probeHardwareGM204();
     void                    publishPhase2Topology();
+    void                    publishPhase3EvoState();
 
 public:
     virtual bool            init(OSDictionary *dictionary = nullptr) override;

@@ -34,3 +34,16 @@ Log of changes, attempts and modifications for the Maxwell GPU display-driver wo
   - Updated `build/Makefile` and `tools/test_shim_host.c` to build and test both Phase 1 and Phase 2.
 
 
+
+- **Phase 3 Implementation — `MaxwellEvoDisp` (`GF119`/`GM200`/`GM204` EVO Engine) & `MaxwellFramebuffer` (`IOFramebuffer` Subclass)**:
+  - Created `kext/include/MaxwellEvoDisp.h` and `kext/src/MaxwellEvoDisp.cpp` porting the Linux Nouveau EVO display engine (`engine/disp/gf119.c` & `gm200.c`):
+    - Armed head state reader (`nvkm_evo_probe_state`: `0x022448` head mask, `0x640414..0x640484 + head * 0x300` timings/viewport/pixel clock/cursor, `0x640180..0x640190 + head * 0x20` primary scanout offset, size, pitch, and pixel format, plus `0x640254 + sor * 0x40` SOR routing).
+    - GK104/GM204 RG underflow reporting disabler (`nvkm_evo_disable_underflow` at `0x616308 + head * 0x800`).
+    - Hardware Cursor PIO channel initializer (`nvkm_evo_cursor_init` at `0x610490 + (13 + head) * 0x10`), 64x64 ARGB8888 BAR1 VRAM surface uploader (`nvkm_evo_cursor_upload_argb`), and real-time cursor position/visibility controller (`nvkm_evo_cursor_set_pos` at `0x69d084 + head * 0x1000` and `0x640480 + head * 0x300`).
+    - Primary plane scanout mode switcher (`nvkm_evo_head_set_scanout`), SOR DPMS power controller (`nvkm_evo_sor_set_power` at `0x61c004 + sor * 0x800`), and VBlank status/scanline poller (`nvkm_evo_vblank_poll` at `0x616340 + head * 0x800` and `0x6100c0`).
+  - Created `kext/src/MaxwellFramebuffer.hpp` and `kext/src/MaxwellFramebuffer.cpp` implementing `org_hackintosh_MaxwellFramebuffer : public IOFramebuffer` (`IOProbeScore = 60000`, gated by `-maxwell_fb` boot-arg):
+    - Maps `BAR0` (16 MiB MMIO) and `BAR1` (VRAM aperture) for `getApertureRange` and `getVRAMRange`.
+    - Builds a multi-mode resolution table combining the active GOP/EVO armed mode, the Phase 2 EDID preferred DTD mode, and standard 720p/1080p/1440p/4K modes (`60/120/144 Hz`).
+    - Injects the Phase 2 hardware-probed 128-byte EDID into macOS `WindowServer` via `hasDDCConnect` and `getDDCBlock`.
+    - Implements 64x64 32-bit ARGB Hardware Cursor (`setCursorImage`, `setCursorState`), SOR DPMS sleep/wake (`setAttributeForConnection`), and `IOTimerEventSource`-backed VBlank interrupts (`registerForInterruptType`).
+  - Updated `kext/Info.plist` (v0.3.0 with `NVDAMaxwellFramebuffer` personality and `IOGraphicsFamily`), `MaxwellProbe.hpp/.cpp`, `build/Makefile`, `tools/maxwell_info.c`, and `tools/test_shim_host.c`.

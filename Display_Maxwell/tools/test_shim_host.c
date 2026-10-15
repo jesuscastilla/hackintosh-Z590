@@ -13,6 +13,7 @@
 #include "../kext/include/gm204_regs.h"
 #include "../kext/include/nvkm_osx_shim.h"
 #include "../kext/include/MaxwellBiosI2C.h"
+#include "../kext/include/MaxwellEvoDisp.h"
 
 int main(void)
 {
@@ -89,6 +90,36 @@ int main(void)
               nvkm_dcb_conn_type_name(topo.outputs[0].connector_type),
               nvkm_dcb_output_type_name(topo.outputs[1].type),
               nvkm_dcb_conn_type_name(topo.outputs[1].connector_type));
+
+    /* Phase 3: Simulate armed EVO PDISP state on HEAD-0 + SOR-1 (1920x1080@60Hz) */
+    nvkm_wr32(&dev, NV_PDISP_HEAD_MASK_REG,         0x0000000fU);
+    nvkm_wr32(&dev, NV_PDISP_HEAD_HTOTAL_VTOTAL(0), (1125U << 16) | 2200U);
+    nvkm_wr32(&dev, NV_PDISP_HEAD_VIEWPORT_OUT(0),  (1080U << 16) | 1920U);
+    nvkm_wr32(&dev, NV_PDISP_HEAD_PCLK_HZ(0),       148500000U);
+    nvkm_wr32(&dev, NV_PDISP_CORE_FB_OFFSET(0),     (0x00100000U >> 8));
+    nvkm_wr32(&dev, NV_PDISP_CORE_FB_STORAGE(0),    (7680U >> 6));
+    nvkm_wr32(&dev, NV_PDISP_SOR_ARMED_STATE(1),    0x00000101U); /* SOR-1 bound to HEAD-0 */
+    nvkm_wr32(&dev, NV_PDISP_SOR_PWR(1),            0x00000001U);
+
+    struct nvkm_evo_disp_state evo;
+    assert(nvkm_evo_probe_state(&dev, &evo));
+    assert(evo.primary_head == 0);
+    assert(evo.heads[0].active);
+    assert(evo.heads[0].width == 1920 && evo.heads[0].height == 1080);
+    assert(evo.heads[0].refresh_hz == 60);
+    assert(evo.heads[0].bound_sor == 1);
+
+    /* Verify Hardware Cursor PIO init & coordinate update */
+    assert(nvkm_evo_cursor_init(&dev, 0, 0x07ff0000ULL));
+    nvkm_evo_cursor_set_pos(&dev, 0, 320, 240, true);
+    assert(nvkm_rd32(&dev, NV_PDISP_PIO_CURS_POS(0)) == ((240U << 16) | 320U));
+
+    /* Verify dynamic mode scanout update (2560x1440) */
+    assert(nvkm_evo_head_set_scanout(&dev, 0, 0x00100000ULL, 2560, 1440, 2560 * 4));
+    assert(nvkm_rd32(&dev, NV_PDISP_CORE_FB_SIZE(0)) == ((1440U << 16) | 2560U));
+
+    nvkm_info("Phase 3 EVO Display Engine Self-Test PASSED: HEAD-%d 1920x1080@%uHz -> 2560x1440, HW Cursor OK\n",
+              evo.primary_head, evo.heads[0].refresh_hz);
 
     free(fake_bar0);
     return 0;

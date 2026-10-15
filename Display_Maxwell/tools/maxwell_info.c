@@ -44,14 +44,22 @@ int main(void)
     }
 
     printf("=== NVDAMaxwell.kext — GTX 970 (GM204) Live Telemetry ===\n");
-    printIntProp(service, CFSTR("NVKM_PMC_BOOT_0"),      "NV_PMC_BOOT_0",      true);
-    printIntProp(service, CFSTR("NVKM_ChipsetID"),       "Chipset ID (NV124)", true);
-    printIntProp(service, CFSTR("NVKM_VRAM_MiB"),        "Detected VRAM (MiB)",false);
-    printIntProp(service, CFSTR("NVKM_Temp_Celsius"),    "GPU Core Temp (C)",  false);
-    printIntProp(service, CFSTR("NVKM_PMC_Enable"),      "NV_PMC_ENABLE",      true);
-    printIntProp(service, CFSTR("NVKM_PDISP_HeadsMask"), "PDISP Heads Mask",   true);
-    printIntProp(service, CFSTR("NVKM_VBIOS_DCB_Offset"),"VBIOS DCB Offset",   true);
-    printIntProp(service, CFSTR("NVKM_VBIOS_DCB_Version"),"VBIOS DCB Version", true);
+    printIntProp(service, CFSTR("NVKM_PMC_BOOT_0"),        "NV_PMC_BOOT_0",        true);
+    printIntProp(service, CFSTR("NVKM_ChipsetID"),         "Chipset ID (NV124)",   true);
+    printIntProp(service, CFSTR("NVKM_VRAM_MiB"),          "Detected VRAM (MiB)",  false);
+    printIntProp(service, CFSTR("NVKM_Temp_Celsius"),      "GPU Core Temp (C)",    false);
+    printIntProp(service, CFSTR("NVKM_PMC_Enable"),        "NV_PMC_ENABLE",        true);
+    printIntProp(service, CFSTR("NVKM_PDISP_HeadsMask"),   "PDISP Heads Mask",     true);
+    printIntProp(service, CFSTR("NVKM_VBIOS_DCB_Offset"),  "VBIOS DCB Offset",     true);
+    printIntProp(service, CFSTR("NVKM_VBIOS_DCB_Version"), "VBIOS DCB Version",    true);
+    printIntProp(service, CFSTR("NVKM_DCB_OutputCount"),   "DCB Output Count",     false);
+    printIntProp(service, CFSTR("NVKM_EVO_PrimaryHead"),   "EVO Primary Head",     false);
+    printIntProp(service, CFSTR("NVKM_EVO_ActiveWidth"),   "EVO Active Width",     false);
+    printIntProp(service, CFSTR("NVKM_EVO_ActiveHeight"),  "EVO Active Height",    false);
+    printIntProp(service, CFSTR("NVKM_EVO_ActiveRefreshHz"),"EVO Active RefreshHz",false);
+    printIntProp(service, CFSTR("NVKM_EVO_ActivePitch"),   "EVO Active Pitch",     false);
+    printIntProp(service, CFSTR("NVKM_EVO_ScanoutOffset"), "EVO Scanout Offset",   true);
+    printIntProp(service, CFSTR("NVKM_EVO_BoundSOR"),      "EVO Bound SOR",        false);
 
     IOObjectRelease(service);
     return 0;

@@ -147,3 +147,14 @@ Because the Nvidia Maxwell GPU requires OCLP root patches on the sealed system s
 - **UEFI Boot Reconstruction**: Re-deployed authentic Windows 11 bootloader binaries and generated a pristine BCD hive using `bcdboot C:\Windows /s <ESP> /f UEFI`. Re-registered Windows Recovery Environment (WinRE) via `reagentc`.
 - **NVRAM Firmware Cleanup**: Purged stale NVRAM boot entries (`rEFInd`, duplicate `OpenCore` pointing to Disk 0, and duplicate `Windows Boot Manager` on Disk 3). Placed genuine `Windows Boot Manager` (`\EFI\Microsoft\Boot\bootmgfw.efi`) at the primary position in `{fwbootmgr}` displayorder.
 
+### [15-10-2026] — macOS 15 Sequoia USB Installer & OpenCore Boot Setup
+- **USB Media Provisioning**: Cleaned and partitioned USB drive (Disk 4, SanDisk Ultra 3.0 64 GB) using a dual-partition GPT scheme:
+  - **Partition 1 (OPENCORE, 5 GB, FAT32)**: Configured as primary UEFI boot volume containing OpenCore 1.0.8 (`\EFI\BOOT`, `\EFI\OC`) and the macOS 15 Sequoia recovery installer (`\com.apple.recovery.boot\BaseSystem.dmg` and `BaseSystem.chunklist`).
+  - **Partition 2 (SEQUOIA, 52 GB, exFAT)**: Configured as high-capacity data volume storing the complete offline installer payload (`InstallAssistant.pkg` 15.6 GB, build 24H32 / macOS 15.8.1) and redundant recovery files.
+- **Sequoia-Specific EFI Tuning**:
+  - Disabled `AirportItlwm.kext` (v2.3.0 for Sonoma) to prevent immediate kernel panic during boot caused by macOS 15 Sequoia's rewritten `IO80211` / `IOSkywalkFamily` architecture; wired network remains natively enabled via `LucyRTL8125Ethernet.kext`.
+  - Disabled non-essential Bluetooth kexts (`IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`) for installer stability.
+  - Enabled verbose boot (`-v`) in `NVRAM -> boot-args` to ensure full console feedback during installer boot.
+  - Retained working hardware identifiers (iMac20,1 SMBIOS, valid Serial/MLB/UUID/ROM) and Comet Lake CPUID spoof (`0x0A0655`) for the Intel Core i5-11600K.
+
+

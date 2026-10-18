@@ -239,19 +239,6 @@ This Hackintosh build relies on outstanding open-source projects created and mai
 
 ---
 
-## 9. Maintenance & Changelog
-
-### [18-10-2026] — Complete Guide Re-Architecture & AMD Navi 10 Standardization
-- **Documentation Re-creation**: Fully restructured `README.md` as a definitive, clean step-by-step installation guide tailored for the ASUS PRIME Z590-P, Intel i5-11600K, and AMD Radeon RX 5700 XT.
-- **Legacy Purge**: Completely purged all legacy Maxwell / Nvidia / Web Driver references and obsolete root-patch workarounds, transitioning to a pure, native Metal 3 graphics configuration.
-- **Security Baseline**: Documented 100% native System Integrity Protection (SIP) standard (`csr-active-config: 00000000`) achievable with native AMD Navi 10 architecture and user-space Wi-Fi networking.
-- **Third-Party Attribution**: Added comprehensive credits and repository links for all third-party utilities, kexts, and community developers.
-
-### [19-10-2026] — NVMe Storage Optimization & Native SIP Enforcement
-- **NVMe Storage Enhancement**: Restored and enabled `NVMeFix.kext` (v1.1.3) under `Kernel -> Add` in both `config.plist` and `config.rx5700xt.plist` to provide autonomous power state transition (APST) management for the Samsung 970 PRO NVMe SSD.
-- **Samsung APFS TRIM Boot Optimization**: Configured `Kernel -> Quirks -> SetApfsTrimTimeout = 0` to eliminate boot-time APFS TRIM delays on Samsung NVMe solid-state drives, maintaining fast boot times.
-- **SIP 100% Native Standard**: Enforced full System Integrity Protection (`csr-active-config = 00000000` / `<data>AAAAAA==</data>`) in the primary `config.plist`.
-- **Nvidia Transition Compatibility**: Maintained temporary boot-args `nv_disable=1 -radvesa` in `config.plist` to preserve system stability with the physical GTX 970 awaiting the AMD Radeon RX 5700 XT.
-- **Integrity Validation**: Verified both configurations with OpenCore 1.0.8 `ocvalidate.exe` (0 errors reported).
-- **Legal Compliance Disclaimer**: Added explicit front-matter legal warning detailing Apple EULA restrictions (Section 2.J), copyright/IP considerations, and educational disclaimer.
+> [!NOTE]
+> For detailed changelogs, version history, and release notes, visit [GitHub Releases](https://github.com/jesuscastilla/hackintosh-Z590/releases).
 

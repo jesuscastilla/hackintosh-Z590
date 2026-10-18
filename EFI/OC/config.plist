@@ -500,7 +500,7 @@
 				<key>Comment</key>
 				<string></string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/itlwm</string>
 				<key>MaxKernel</key>
@@ -518,7 +518,7 @@
 				<key>Comment</key>
 				<string></string>
 				<key>Enabled</key>
-				<true/>
+				<false/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/AirportItlwm</string>
 				<key>MaxKernel</key>
@@ -1437,14 +1437,14 @@
 				Rg==
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0</string>
+				<string>-v keepsyms=1 debug=0x100 alcid=11 nv_disable=1 -radvesa agdpmod=pikera unfairgva=1</string>
 				<key>csr-active-config</key>
 				<data>
-				AwoAAA==
+				AwgAAA==
 				</data>
 				<key>prev-lang:kbd</key>
 				<data>
-				cnUtUlU6MjUy
+				ZXMtRVM6ODc=
 				</data>
 				<key>run-efi-updater</key>
 				<string>No</string>

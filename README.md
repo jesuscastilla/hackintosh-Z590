@@ -157,4 +157,40 @@ Because the Nvidia Maxwell GPU requires OCLP root patches on the sealed system s
   - Enabled verbose boot (`-v`) in `NVRAM -> boot-args` to ensure full console feedback during installer boot.
   - Retained working hardware identifiers (iMac20,1 SMBIOS, valid Serial/MLB/UUID/ROM) and Comet Lake CPUID spoof (`0x0A0655`) for the Intel Core i5-11600K.
 
+### [16-10-2026] — macOS & EFI Migration Guide to Samsung 860 EVO (Clonezilla)
+- **Migration Documentation**: Authored comprehensive printable migration guide for cloning macOS Sonoma and OpenCore EFI from the SPCC SATA SSD to the Samsung SSD 860 EVO using Clonezilla Live (`device-device` / `disk_to_local_disk`).
+- **Safety & Provisioning**: Explicit NVMe disk isolation protocol (`nvme0n1` Windows 11 and `nvme1n1` storage protection).
+- **Post-Clone Workflow**: Step-by-step instructions for mandatory SPCC SSD physical disconnection (preventing APFS UUID collisions), direct internal SATA attachment, OpenCore NVRAM reset, GPT secondary header relocation (`diskutil repairDisk`), APFS container expansion to 500 GB (`diskutil apfs resizeContainer`), and network/keychain purging for iServices activation.
+
+### [17-10-2026] — macOS Tahoe 26.7.1 USB Installer & Unaccelerated Graphics OpenCore Setup
+- **USB Media Provisioning**: Re-partitioned Disk 4 (SanDisk Ultra 3.0 64 GB) using a dual-partition GPT layout:
+  - **Partition 1 (OPENCORE, 5 GB, FAT32)**: Configured as UEFI boot volume containing OpenCore EFI (`\EFI\BOOT`, `\EFI\OC`) and macOS Tahoe recovery installer payload (`\com.apple.recovery.boot\BaseSystem.dmg` and `BaseSystem.chunklist`, build 25G241 / 26.7.1).
+  - **Partition 2 (TAHOE_DATA, 52.28 GB, exFAT)**: Configured as high-capacity data volume storing offline installer assets (`InstallAssistant.pkg` 18.38 GB).
+- **Unaccelerated Graphics Configuration (Pre-RX 5700 XT)**:
+  - Preserved working macOS Sonoma / Maxwell GPU configuration as `G:\Hackintosh\EFI\OC\config.sonoma_maxwell.plist`.
+  - Configured `boot-args` for unaccelerated VESA/GOP mode: `-v keepsyms=1 debug=0x100 alcid=11 nv_disable=1 -radvesa`. Stripped legacy Nvidia Web Driver / OCLP root patch flags (`amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0`) since root patches were reverted and the physical GPU is temporarily the GTX 970 awaiting the user's AMD Radeon RX 5700 XT physical installation.
+  - Set `csr-active-config` to `03080000` (permissive SIP for installer setup) and `prev-lang:kbd` to `es-ES:87`.
+- **Kext Auditing & Tahoe Compatibility**:
+  - Confirmed all core Acidanthera kexts are up to date: `Lilu` 1.7.2, `VirtualSMC` 1.3.8, `WhateverGreen` 1.7.1, `AppleALC` 1.9.8, `LucyRTL8125Ethernet` 1.2.3, `USBToolBox` 1.1, `UTBMap` 1.1.
+  - Disabled `AirportItlwm.kext` (v2.3.0 for Sonoma) in `Kernel -> Add` to eliminate `IOSkywalkFamily` kernel panics in macOS 15+/26; network connectivity provided via onboard Realtek RTL8125 2.5 GbE Ethernet (`LucyRTL8125Ethernet.kext`).
+  - Disabled Bluetooth kexts (`IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`) during installation for optimal stability.
+  - Verified `MinDate=0` / `MinVersion=0` (APFS driver compatibility) and `ScanPolicy=0` / `SecureBootModel=Disabled`.
+
+### [18-10-2026] — EFI Injections for AMD Radeon RX 5700 XT & Peripheral Re-activation
+- **Boot-Args Enhancement (Current `config.plist`)**:
+  - Injected `agdpmod=pikera` (required for Navi 10 / RX 5000 series board-id policy matching) and `unfairgva=1` (DRM and hardware video acceleration fix).
+  - Maintained `nv_disable=1 -radvesa` strictly for temporary VESA stability while the physical GTX 970 remains installed.
+- **Peripheral & Network Stack Activation**:
+  - Enabled `itlwm.kext` (v2.3.0) under `Kernel -> Add` to allow clean, non-root-patch Wi-Fi via HeliPort, avoiding `IOSkywalkFamily` kernel panics on modern macOS.
+  - Re-enabled the full Intel Bluetooth stack: `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`.
+- **Dedicated RX 5700 XT Profile (`EFI/OC/config.rx5700xt.plist`)**:
+  - Created standalone drop-in configuration for when the physical AMD Radeon RX 5700 XT is installed.
+  - Completely stripped `nv_disable=1` and `-radvesa` for immediate native Metal 3 acceleration upon card insertion.
+  - Injected PCIe device properties under `DeviceProperties -> Add`:
+    - `PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x0)`: Injected `model = AMD Radeon RX 5700 XT`, `device_type = VGA compatible controller`, and `hda-gfx = onboard-1`.
+    - `PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x1)`: Injected `model = AMD Radeon RX 5700 XT HD Audio Controller`, `device_type = Audio device`, and `hda-gfx = onboard-1`.
+  - Re-established 100% native System Integrity Protection (SIP) `csr-active-config = 00000000` (`<data>AAAAAA==</data>`), eliminating all unsigned driver allowances now that OCLP root patches are no longer required.
+- **Configuration Verification**:
+  - Validated both `config.plist` and `config.rx5700xt.plist` against OpenCore 1.0.8 specifications using `ocvalidate.exe`; zero structural errors or warnings reported.
+
 

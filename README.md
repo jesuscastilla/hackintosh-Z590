@@ -1,196 +1,237 @@
-# Hackintosh — macOS Sonoma on ASUS Z590
+# macOS Installation Guide — ASUS PRIME Z590-P & AMD Radeon RX 5700 XT
 
-Personal Hackintosh build: macOS Sonoma 14.x running on an **ASUS PRIME Z590-P WIFI** motherboard with an **Intel Core i5-11600K** and an **NVIDIA GeForce GTX 970 (Maxwell)**, dual-booting with **Windows 11**. Boot management is handled via **OpenCore 1.0.x + rEFInd**, with legacy GPU acceleration provided by **OpenCore Legacy Patcher (OCLP)**.
+A complete, production-grade step-by-step guide to installing modern **macOS (Sonoma / Sequoia / Tahoe)** on an **ASUS PRIME Z590-P WIFI** motherboard powered by an **Intel Core i5-11600K** and an **AMD Radeon RX 5700 XT**. 
 
----
-
-## Disclaimer
-
-> [!WARNING]
-> This repository is intended strictly for educational, experimental, and testing purposes. Installing macOS on non-Apple hardware violates Apple's End User License Agreement (EULA, Section 2.J) and may have legal implications depending on your jurisdiction. The author does not endorse piracy or license infringement and assumes no responsibility for any misuse or hardware issues. Proceed at your own discretion.
+This build utilizes **OpenCore 1.0.x**, native Comet Lake CPUID emulation, and native AMD Navi 10 graphics acceleration with **100% full System Integrity Protection (SIP)** enabled.
 
 ---
 
 ## Hardware Specifications
 
-| Component | Model / Spec | Notes |
+| Component | Model / Specification | Configuration Role |
 |---|---|---|
-| **CPU** | Intel Core i5-11600K (Rocket Lake, 6C/12T) | CPUID spoofed to Comet Lake (`0x0A0655`) |
-| **Motherboard** | ASUS PRIME Z590-P WIFI (LGA1200) | `UpdateSMBIOSMode=Custom` |
-| **GPU** | NVIDIA GeForce GTX 970 4 GB (Maxwell) | Accelerated via OCLP (NVIDIA Web Drivers) |
-| **iGPU** | Intel UHD Graphics 750 | Disabled (unsupported in macOS) |
-| **RAM** | 32 GB DDR4 | Standard dual-channel |
-| **Storage** | Samsung 990 PRO NVMe 1 TB | Windows 11 + macOS Sonoma (APFS) |
-| **Ethernet** | Realtek RTL8125 2.5 GbE | `LucyRTL8125Ethernet.kext` |
-| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi) | `AirportItlwm.kext` (native macOS Wi-Fi integration) |
+| **CPU** | Intel Core i5-11600K (Rocket Lake, 6C/12T) | Spoofed to Comet Lake (`0x0A0655`) via `Kernel -> Emulate` |
+| **Motherboard** | ASUS PRIME Z590-P WIFI (LGA1200) | Firmware tuned for OpenCore; `UpdateSMBIOSMode=Custom` |
+| **GPU** | AMD Radeon RX 5700 XT 8 GB GDDR6 (Navi 10) | **100% Native Metal 3 acceleration** via `agdpmod=pikera` |
+| **iGPU** | Intel UHD Graphics 750 | Disabled via `DeviceProperties` (`disable-gpu = 01000000`) |
+| **RAM** | 32 GB DDR4 (Dual Channel) | Standard XMP Profile |
+| **Storage** | Samsung 860 EVO / NVMe SSD | APFS macOS target volume |
+| **Ethernet** | Realtek RTL8125 2.5 GbE | Driven by `LucyRTL8125Ethernet.kext` |
+| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi) | Driven by `itlwm.kext` managed with `HeliPort.app` |
 | **Bluetooth** | Intel AX201 Bluetooth | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
-| **Audio** | Realtek ALC897 | `AppleALC.kext` (`alcid=11`) |
-| **Bootloader** | OpenCore 1.0.x + rEFInd | Dual-boot immune to NVRAM / CMOS resets |
-| **SMBIOS** | `iMac20,1` | Full iServices (iMessage, FaceTime, iCloud) |
-| **macOS** | Sonoma 14.4.x | APFS root with OCLP legacy GPU patches |
+| **Audio** | Realtek ALC897 | Native AppleHDA patching via `AppleALC.kext` (`alcid=11`) |
+| **SMBIOS** | `iMac20,1` | Native match for 10th/11th Gen Intel + AMD Navi GPU |
+| **SIP Status** | Fully Enabled (`csr-active-config: 00000000`) | Pristine, sealed system volume (`SSV`) without root patches |
 
 ---
 
-## Working Features & Known Limitations
+## 1. ASUS Motherboard BIOS Settings
 
-### What Works
-- **Full Graphics Acceleration**: Metal & OpenGL acceleration via OpenCore Legacy Patcher (Nvidia Web Drivers on Sonoma).
-- **Networking**: 2.5 Gbps Ethernet, Intel Wi-Fi, and Intel Bluetooth with Airdrop/audio support.
-- **Apple Services**: iCloud, App Store, iMessage, FaceTime.
-- **Custom USB Port Mapping**: USB 2.0, USB 3.0, Type-C, and internal headers properly mapped (`UTBMap.kext`).
-- **Audio**: Realtek ALC897 with internal speaker, mic, and headphones working.
-- **Dual Boot**: Custom rEFInd Glassy boot menu with direct chaining to Windows and OpenCore.
+Reboot your computer and press `Del` or `F2` to enter the UEFI BIOS setup. Press `F7` to switch to **Advanced Mode**, then configure the following settings:
 
-### Known Limitations
-- **Deep Sleep (S3)**: NVIDIA Maxwell architecture has known sleep/wake wake-lock issues in modern macOS versions (Sonoma). Display sleep works properly, but deep system sleep is disabled to prevent wake crashes.
+### Disable
+* **Fast Boot** (`Boot -> Fast Boot`)
+* **Secure Boot** (`Boot -> Secure Boot -> OS Type`: change from *Windows UEFI* to **Other OS**)
+* **CSM (Compatibility Support Module)** (`Boot -> CSM -> Launch CSM`: **Disabled**)
+* **Intel SGX** (`Advanced -> CPU Configuration -> Software Guard Extensions`: **Disabled**)
+* **CFG Lock** (`Advanced -> CPU Configuration -> CFG Lock`: **Disabled**)
+* **Serial / COM Port** (`Advanced -> Onboard Devices Configuration`: **Disabled**)
+
+### Enable
+* **VT-x (Intel Virtualization Technology)** (`Advanced -> CPU Configuration`: **Enabled**)
+* **Above 4G Decoding** (`Advanced -> PCI Subsystem Settings`: **Enabled**)
+* **Resize BAR Support** (`Advanced -> PCI Subsystem Settings`: **Disabled** or **Auto**; controlled via OpenCore)
+* **Hyper-Threading** (`Advanced -> CPU Configuration`: **Enabled**)
+* **XHCI Hand-off** (`Advanced -> USB Configuration`: **Enabled**)
+* **Primary Display**: Set to **PCIE / PEG** (AMD Radeon RX 5700 XT)
+
+Save changes and exit (`F10`).
 
 ---
 
-## OpenCore Configuration
+## 2. EFI Architecture & Kernel Extensions
 
-### CPU Spoofing (Rocket Lake)
-Because Apple never released Macs with 11th Gen Rocket Lake processors, Comet Lake CPUID spoofing is applied under `Kernel → Emulate`:
+The provided EFI repository is structured to deliver full hardware functionality without requiring unsigned system kexts or breaking the macOS Sealed System Volume:
 
 ```text
-Cpuid1Data: 55060A00 00000000 00000000 00000000   (0x0A0655)
-Cpuid1Mask: FFFFFFFF 00000000 00000000 00000000
+EFI/
+├── BOOT/
+│   └── BOOTx64.efi
+└── OC/
+    ├── ACPI/
+    │   ├── SSDT-AWAC.aml              # Disables AWAC and forces legacy RTC
+    │   ├── SSDT-EC-USBX-DESKTOP.aml   # Injects dummy EC and USB power regulator
+    │   ├── SSDT-PLUG-DRTNIA.aml       # CPU power management (plugin-type=1)
+    │   └── SSDT-RHUB.aml              # Resets USB Root Hub for ASUS Z590
+    ├── Drivers/
+    │   ├── AudioDxe.efi
+    │   ├── HfsPlus.efi
+    │   ├── OpenCanopy.efi
+    │   ├── OpenPartitionDxe.efi
+    │   └── OpenRuntime.efi
+    ├── Kexts/
+    │   ├── Lilu.kext                  # Patching engine
+    │   ├── VirtualSMC.kext            # Apple SMC emulator
+    │   ├── SMCProcessor.kext          # CPU temperature telemetry
+    │   ├── SMCSuperIO.kext            # Fan & motherboard sensor telemetry
+    │   ├── WhateverGreen.kext         # Graphics management
+    │   ├── AppleALC.kext              # ALC897 audio support
+    │   ├── LucyRTL8125Ethernet.kext   # 2.5 GbE Ethernet driver
+    │   ├── itlwm.kext                 # Intel Wi-Fi driver (clean user-space networking)
+    │   ├── IntelBluetoothFirmware.kext# Intel Bluetooth firmware loader
+    │   ├── IntelBTPatcher.kext        # Intel Bluetooth patcher
+    │   ├── BlueToolFixup.kext         # Bluetooth injector for macOS Monterey+
+    │   ├── USBToolBox.kext            # USB framework
+    │   └── UTBMap.kext                # Tailored USB 2.0 / 3.0 / Type-C port map
+    └── config.plist                   # Master OpenCore configuration
 ```
 
-### ACPI Patches
-- `SSDT-AWAC.aml` — Disables AWAC clock and enables classic RTC.
-- `SSDT-EC-USBX-DESKTOP.aml` — Dummy Embedded Controller and USB power regulation.
-- `SSDT-PLUG-DRTNIA.aml` — Injects plugin-type=1 for native CPU power management.
-- `SSDT-RHUB.aml` — Resets USB Root Hub state on Asus Z590 motherboards.
-
-### Kernel Extensions (Kexts)
-The build relies on 15 clean, stable kexts:
-1. `Lilu.kext` — Core patching engine.
-2. `VirtualSMC.kext` — Advanced Apple SMC emulator.
-3. `SMCProcessor.kext` — CPU temperature and core monitoring.
-4. `SMCSuperIO.kext` — Fan speed and motherboard sensor monitoring.
-5. `WhateverGreen.kext` — Video card management and display output patching.
-6. `AppleALC.kext` — Audio patcher for Realtek ALC897.
-7. `LucyRTL8125Ethernet.kext` — Realtek 2.5 GbE network driver.
-8. `NVMeFix.kext` — NVMe power management and stability fixes.
-9. `AirportItlwm.kext` / `itlwm.kext` — Intel Wi-Fi drivers.
-10. `BlueToolFixup.kext` — Bluetooth injector for macOS Monterey+.
-11. `IntelBluetoothFirmware.kext` — Firmware loader for Intel Bluetooth.
-12. `IntelBTPatcher.kext` — Extended patches for Intel Bluetooth.
-13. `USBToolBox.kext` — USB mapping framework.
-14. `UTBMap.kext` — Tailored USB port mapping for ASUS PRIME Z590-P.
-
-### NVRAM & SIP Boot Arguments
-```text
--v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0
-```
-
-- `amfi=0x80` & `ipc_control_port_options=0`: Enables legacy unsigned driver loading required by OpenCore Legacy Patcher for Maxwell GPUs.
-- `nvda_drv_vrl=1`, `ngfxcompat=1`, `ngfxgl=1`: Enables Nvidia Web Drivers with OpenGL/Metal fallback.
-- `alcid=11`: Sets the layout-id for the ALC897 audio codec.
-- `csr-active-config`: Set to `030A0000` (`<data>AwoAAA==</data>`) to permit OCLP root volume modifications without fully compromising system integrity.
-
-### OpenCore Picker
-- `ShowPicker`: `true`
-- `Timeout`: `5` seconds
-- `Resolution`: `1920x1080@60`
-- `ProvideCurrentCpuInfo`: `false`
-
 ---
 
-## Dual Boot Setup with rEFInd (NVRAM-Reset Persistent)
-
-To prevent the ASUS motherboard from wiping the boot entries or reverting exclusively to Windows on NVRAM/CMOS resets:
-
-1. **Fallback Path Substitution**:
-   `\EFI\Microsoft\Boot\bootmgfw.efi` is replaced with `refind_x64.efi`. When the motherboard loses NVRAM or resets its boot priority, it defaults to the standard Windows loader path, which launches rEFInd automatically.
-2. **Original Windows Bootloader**:
-   The genuine Windows Boot Manager binary is preserved at `\EFI\Microsoft\Boot\bootmgfw_orig.efi`.
-3. **rEFInd Glassy Theme**:
-   The custom `rEFInd-glassy` theme is installed under both `\EFI\Microsoft\Boot\themes\` and `\EFI\refind\themes\`.
-4. **Boot Stanzas**:
-   - **Windows Entry**: Launches `/EFI/Microsoft/Boot/bootmgfw_orig.efi`.
-   - **macOS Entry**: Launches `/EFI/OC/OpenCore.efi`.
-
----
-
-## Updating macOS or Safari
-
-Because the Nvidia Maxwell GPU requires OCLP root patches on the sealed system snapshot, follow these steps when updating macOS or Safari:
-
-1. Open **OpenCore Legacy Patcher** → Click **Revert Root Patches**.
-2. Reboot the computer (the system will boot in unaccelerated basic VESA mode).
-3. Install the update via **System Settings → General → Software Update**.
-4. Once the update completes and macOS reboots, open **OpenCore Legacy Patcher** → Click **Start Root Patching**.
-5. Reboot to restore full graphics acceleration.
-
----
-
-## Replicating This Build
+## 3. Generating Your Unique SMBIOS (Mandatory)
 
 > [!IMPORTANT]
-> The included `config.plist` has all private serial numbers sanitized with placeholders (`GENERATE_YOUR_OWN_SERIAL`, etc.).
-> 
-> Before booting or signing into your Apple ID:
-> 1. Download **GenSMBIOS**.
-> 2. Generate a new serial set for the model **`iMac20,1`**.
-> 3. Fill in `SystemSerialNumber`, `MLB`, and `SystemUUID` under `PlatformInfo → Generic`.
-> 4. Under `ROM`, insert your motherboard's physical Ethernet MAC address (as hex bytes without colons).
+> To use Apple Services (iCloud, App Store, iMessage, FaceTime), you must populate `PlatformInfo -> Generic` in `config.plist` with unique serial numbers. Never share your serials publicly.
+
+1. Download [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS).
+2. Run `GenSMBIOS.bat` (Windows) or `GenSMBIOS.command` (macOS/Linux).
+3. Select option **1** to download the latest MacSerial library.
+4. Select option **3** (*Generate SMBIOS*) and enter the model:
+   ```text
+   iMac20,1
+   ```
+5. Open `EFI/OC/config.plist` using [ProperTree](https://github.com/corpnewt/ProperTree) and paste the generated values under `PlatformInfo -> Generic`:
+   * `SystemProductName`: `iMac20,1`
+   * `SystemSerialNumber`: Your generated Serial
+   * `MLB`: Your generated Board Serial
+   * `SystemUUID`: Your generated UUID
+   * `ROM`: Your physical Realtek 2.5 GbE Ethernet MAC address (12 hexadecimal characters, without colons, e.g., `A1B2C3D4E5F6`).
 
 ---
 
-## Maintenance & Changelog
+## 4. Creating the macOS USB Installer
 
-### [14-10-2026] — Windows EFI Partition Purge and Reconstruction
-- **ESP Sanitization**: Completely wiped all non-Windows assets from the primary NVMe EFI System Partition (Disk 0, Partition 1). Removed residual rEFInd installations, custom glassy themes, OpenCore debug logs, and macOS filesystem artifacts (`.Spotlight-V100`, `.fseventsd`, etc.).
-- **Partition Type Correction**: Corrected Disk 0 Partition 1 GPT type from Basic Data Partition (`ebd0a0a2-b9e5-4433-87c0-68b6b72699c7`) to standard EFI System Partition GUID (`c12a7328-f81f-11d2-ba4b-00a0c93ec93b`).
-- **Filesystem Health**: Executed `chkdsk /F` on the EFI volume, resolving dirty flags and restoring operational health to `Healthy / OK`.
-- **UEFI Boot Reconstruction**: Re-deployed authentic Windows 11 bootloader binaries and generated a pristine BCD hive using `bcdboot C:\Windows /s <ESP> /f UEFI`. Re-registered Windows Recovery Environment (WinRE) via `reagentc`.
-- **NVRAM Firmware Cleanup**: Purged stale NVRAM boot entries (`rEFInd`, duplicate `OpenCore` pointing to Disk 0, and duplicate `Windows Boot Manager` on Disk 3). Placed genuine `Windows Boot Manager` (`\EFI\Microsoft\Boot\bootmgfw.efi`) at the primary position in `{fwbootmgr}` displayorder.
+### Option A: From macOS
+1. Download macOS from the App Store or via `InstallAssistant.pkg`.
+2. Insert a 16 GB+ USB flash drive and format it via **Disk Utility** as **Mac OS Extended (Journaled)** with a **GUID Partition Map**, naming the volume `MyVolume`.
+3. Open Terminal and run the official Apple installer command:
+   ```bash
+   sudo /Applications/Install\ macOS\ Sonoma.app/Contents/Resources/createinstallmedia --volume /Volumes/MyVolume
+   ```
+4. Once created, mount the USB's EFI partition and copy the repository's `EFI` folder into the root of the EFI partition.
 
-### [15-10-2026] — macOS 15 Sequoia USB Installer & OpenCore Boot Setup
-- **USB Media Provisioning**: Cleaned and partitioned USB drive (Disk 4, SanDisk Ultra 3.0 64 GB) using a dual-partition GPT scheme:
-  - **Partition 1 (OPENCORE, 5 GB, FAT32)**: Configured as primary UEFI boot volume containing OpenCore 1.0.8 (`\EFI\BOOT`, `\EFI\OC`) and the macOS 15 Sequoia recovery installer (`\com.apple.recovery.boot\BaseSystem.dmg` and `BaseSystem.chunklist`).
-  - **Partition 2 (SEQUOIA, 52 GB, exFAT)**: Configured as high-capacity data volume storing the complete offline installer payload (`InstallAssistant.pkg` 15.6 GB, build 24H32 / macOS 15.8.1) and redundant recovery files.
-- **Sequoia-Specific EFI Tuning**:
-  - Disabled `AirportItlwm.kext` (v2.3.0 for Sonoma) to prevent immediate kernel panic during boot caused by macOS 15 Sequoia's rewritten `IO80211` / `IOSkywalkFamily` architecture; wired network remains natively enabled via `LucyRTL8125Ethernet.kext`.
-  - Disabled non-essential Bluetooth kexts (`IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`) for installer stability.
-  - Enabled verbose boot (`-v`) in `NVRAM -> boot-args` to ensure full console feedback during installer boot.
-  - Retained working hardware identifiers (iMac20,1 SMBIOS, valid Serial/MLB/UUID/ROM) and Comet Lake CPUID spoof (`0x0A0655`) for the Intel Core i5-11600K.
+### Option B: From Windows (Dual-Partition Boot Media)
+1. Partition the USB flash drive with a GPT scheme into two volumes:
+   * **Partition 1 (EFI/BOOT, 5 GB, FAT32)**: Copy the `EFI` folder and the `com.apple.recovery.boot` payload.
+   * **Partition 2 (INSTALLER_DATA, NTFS or exFAT)**: Store offline installation packages.
 
-### [16-10-2026] — macOS & EFI Migration Guide to Samsung 860 EVO (Clonezilla)
-- **Migration Documentation**: Authored comprehensive printable migration guide for cloning macOS Sonoma and OpenCore EFI from the SPCC SATA SSD to the Samsung SSD 860 EVO using Clonezilla Live (`device-device` / `disk_to_local_disk`).
-- **Safety & Provisioning**: Explicit NVMe disk isolation protocol (`nvme0n1` Windows 11 and `nvme1n1` storage protection).
-- **Post-Clone Workflow**: Step-by-step instructions for mandatory SPCC SSD physical disconnection (preventing APFS UUID collisions), direct internal SATA attachment, OpenCore NVRAM reset, GPT secondary header relocation (`diskutil repairDisk`), APFS container expansion to 500 GB (`diskutil apfs resizeContainer`), and network/keychain purging for iServices activation.
+---
 
-### [17-10-2026] — macOS Tahoe 26.7.1 USB Installer & Unaccelerated Graphics OpenCore Setup
-- **USB Media Provisioning**: Re-partitioned Disk 4 (SanDisk Ultra 3.0 64 GB) using a dual-partition GPT layout:
-  - **Partition 1 (OPENCORE, 5 GB, FAT32)**: Configured as UEFI boot volume containing OpenCore EFI (`\EFI\BOOT`, `\EFI\OC`) and macOS Tahoe recovery installer payload (`\com.apple.recovery.boot\BaseSystem.dmg` and `BaseSystem.chunklist`, build 25G241 / 26.7.1).
-  - **Partition 2 (TAHOE_DATA, 52.28 GB, exFAT)**: Configured as high-capacity data volume storing offline installer assets (`InstallAssistant.pkg` 18.38 GB).
-- **Unaccelerated Graphics Configuration (Pre-RX 5700 XT)**:
-  - Preserved working macOS Sonoma / Maxwell GPU configuration as `G:\Hackintosh\EFI\OC\config.sonoma_maxwell.plist`.
-  - Configured `boot-args` for unaccelerated VESA/GOP mode: `-v keepsyms=1 debug=0x100 alcid=11 nv_disable=1 -radvesa`. Stripped legacy Nvidia Web Driver / OCLP root patch flags (`amfi=0x80 ngfxgl=1 ngfxcompat=1 nvda_drv_vrl=1 ipc_control_port_options=0`) since root patches were reverted and the physical GPU is temporarily the GTX 970 awaiting the user's AMD Radeon RX 5700 XT physical installation.
-  - Set `csr-active-config` to `03080000` (permissive SIP for installer setup) and `prev-lang:kbd` to `es-ES:87`.
-- **Kext Auditing & Tahoe Compatibility**:
-  - Confirmed all core Acidanthera kexts are up to date: `Lilu` 1.7.2, `VirtualSMC` 1.3.8, `WhateverGreen` 1.7.1, `AppleALC` 1.9.8, `LucyRTL8125Ethernet` 1.2.3, `USBToolBox` 1.1, `UTBMap` 1.1.
-  - Disabled `AirportItlwm.kext` (v2.3.0 for Sonoma) in `Kernel -> Add` to eliminate `IOSkywalkFamily` kernel panics in macOS 15+/26; network connectivity provided via onboard Realtek RTL8125 2.5 GbE Ethernet (`LucyRTL8125Ethernet.kext`).
-  - Disabled Bluetooth kexts (`IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, `BlueToolFixup.kext`) during installation for optimal stability.
-  - Verified `MinDate=0` / `MinVersion=0` (APFS driver compatibility) and `ScanPolicy=0` / `SecureBootModel=Disabled`.
+## 5. Step-by-Step Installation Walkthrough
 
-### [18-10-2026] — EFI Injections for AMD Radeon RX 5700 XT & Peripheral Re-activation
-- **Boot-Args Enhancement (Current `config.plist`)**:
-  - Injected `agdpmod=pikera` (required for Navi 10 / RX 5000 series board-id policy matching) and `unfairgva=1` (DRM and hardware video acceleration fix).
-  - Maintained `nv_disable=1 -radvesa` strictly for temporary VESA stability while the physical GTX 970 remains installed.
-- **Peripheral & Network Stack Activation**:
-  - Enabled `itlwm.kext` (v2.3.0) under `Kernel -> Add` to allow clean, non-root-patch Wi-Fi via HeliPort, avoiding `IOSkywalkFamily` kernel panics on modern macOS.
-  - Re-enabled the full Intel Bluetooth stack: `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`.
-- **Dedicated RX 5700 XT Profile (`EFI/OC/config.rx5700xt.plist`)**:
-  - Created standalone drop-in configuration for when the physical AMD Radeon RX 5700 XT is installed.
-  - Completely stripped `nv_disable=1` and `-radvesa` for immediate native Metal 3 acceleration upon card insertion.
-  - Injected PCIe device properties under `DeviceProperties -> Add`:
-    - `PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x0)`: Injected `model = AMD Radeon RX 5700 XT`, `device_type = VGA compatible controller`, and `hda-gfx = onboard-1`.
-    - `PciRoot(0x0)/Pci(0x1,0x0)/Pci(0x0,0x1)`: Injected `model = AMD Radeon RX 5700 XT HD Audio Controller`, `device_type = Audio device`, and `hda-gfx = onboard-1`.
-  - Re-established 100% native System Integrity Protection (SIP) `csr-active-config = 00000000` (`<data>AAAAAA==</data>`), eliminating all unsigned driver allowances now that OCLP root patches are no longer required.
-- **Configuration Verification**:
-  - Validated both `config.plist` and `config.rx5700xt.plist` against OpenCore 1.0.8 specifications using `ocvalidate.exe`; zero structural errors or warnings reported.
+### Step 5.1: Booting OpenCore
+1. Insert the USB installer into a USB 2.0 or 3.0 port on the motherboard rear I/O panel.
+2. Turn on the PC and tap `F8` to access the ASUS UEFI Boot Menu.
+3. Select your USB drive with the prefix **UEFI:** (e.g., `UEFI: SanDisk Ultra...`).
+4. At the OpenCore boot picker menu:
+   * Select **Reset NVRAM** on your very first boot to clear any motherboard NVRAM conflicts.
+   * After the automatic reboot, select **Install macOS** (or the macOS Base System recovery entry).
 
+### Step 5.2: Formatting the Target Drive
+1. When the macOS Installer UI appears, select **Disk Utility** and click **Continue**.
+2. Click **View** (top-left menu) and choose **Show All Devices**.
+3. Select the physical internal drive (e.g., *Samsung SSD 860 EVO* or your dedicated NVMe SSD), NOT a sub-volume.
+4. Click **Erase** and configure:
+   * **Name**: `Macintosh HD`
+   * **Format**: `APFS`
+   * **Scheme**: `GUID Partition Map`
+5. Click **Erase**, wait for completion, and close Disk Utility.
 
+### Step 5.3: Running the Installer
+1. Click **Install macOS** and accept Apple's terms and conditions.
+2. Choose **Macintosh HD** as the destination drive and click **Continue**.
+3. The installer will begin copying system assets. During installation, the machine will restart 3 to 4 times:
+   * **Reboot 1 & 2**: OpenCore will automatically select `macOS Installer` or `Macintosh HD`. Let the system reboot automatically without unplugging the drive.
+   * **Reboot 3**: The system will boot into the completed macOS volume.
+
+### Step 5.4: Initial macOS Setup
+1. Complete the Setup Assistant (select Region, Keyboard, and Network).
+2. You can sign into your Apple ID or skip and sign in later from System Settings.
+
+---
+
+## 6. Post-Installation & EFI Deployment
+
+To boot macOS independently without the USB drive inserted:
+
+1. Open **Terminal** in macOS.
+2. Identify the disk identifiers of your USB drive and internal SSD EFI partitions:
+   ```bash
+   diskutil list
+   ```
+3. Mount both EFI partitions (replace `X` and `Y` with the corresponding disk slice numbers):
+   ```bash
+   sudo diskutil mount diskXs1    # USB EFI
+   sudo diskutil mount diskYs1    # Internal SSD EFI
+   ```
+4. Copy the entire `EFI` folder from the USB EFI partition to the internal SSD EFI partition:
+   ```bash
+   cp -R /Volumes/EFI/EFI /Volumes/EFI\ 1/
+   ```
+5. Eject the USB drive, reboot your PC, enter the BIOS (`F2`), and set the internal disk's `OpenCore` or `UEFI OS` as the **#1 Boot Priority**.
+
+---
+
+## 7. Peripheral Configuration & Performance Verification
+
+### Graphics Acceleration (AMD Radeon RX 5700 XT)
+* Go to ** -> About This Mac -> More Info -> Graphics / Displays**.
+* Confirm that **AMD Radeon RX 5700 XT 8 GB** is recognized with **Metal: Supported (Metal 3)**.
+* Hardware video decoding (HEVC/H.264) and DRM streaming in Safari are handled natively via `agdpmod=pikera unfairgva=1`.
+
+### Wi-Fi Connectivity (HeliPort)
+Because macOS rewritten network architectures (`IOSkywalkFamily`) require compromising SIP to inject legacy drivers, this build uses **itlwm + HeliPort**:
+1. Download the latest release of [HeliPort.app](https://github.com/OpenIntelWireless/HeliPort).
+2. Drag `HeliPort.app` to your `/Applications` folder.
+3. Open `HeliPort` (and set it to launch on login under *System Settings -> General -> Login Items*).
+4. Click the Wi-Fi icon in the top menu bar to scan, select, and connect to wireless networks with full WPA2/WPA3 support.
+
+### Bluetooth
+* Onboard Intel AX201 Bluetooth operates natively through the paired `IntelBluetoothFirmware` and `BlueToolFixup` kernel extensions.
+* Verify connectivity in **System Settings -> Bluetooth**.
+
+### Audio (Realtek ALC897)
+* Integrated audio, line-in, and headphone jacks are enabled via `AppleALC.kext` with layout-id `alcid=11`.
+* Digital HDMI/DisplayPort audio is routed through the AMD RX 5700 XT HD Audio Controller.
+
+---
+
+## 8. Credits & Third-Party Resources
+
+This Hackintosh build relies on outstanding open-source projects created and maintained by the hackintosh community:
+
+| Project | Developer / Maintainer | Description & Repository Link |
+|---|---|---|
+| **OpenCorePkg** | [Acidanthera](https://github.com/acidanthera) | Leading UEFI bootloader and kernel patcher: [OpenCorePkg](https://github.com/acidanthera/OpenCorePkg) |
+| **Lilu** | [Acidanthera](https://github.com/acidanthera) | Arbitrary kext and process patching engine: [Lilu](https://github.com/acidanthera/Lilu) |
+| **WhateverGreen** | [Acidanthera](https://github.com/acidanthera) | Comprehensive graphics management: [WhateverGreen](https://github.com/acidanthera/WhateverGreen) |
+| **VirtualSMC** | [Acidanthera](https://github.com/acidanthera) | Advanced Apple SMC emulator and sensor framework: [VirtualSMC](https://github.com/acidanthera/VirtualSMC) |
+| **AppleALC** | [Acidanthera](https://github.com/acidanthera) | Native macOS HD audio patcher: [AppleALC](https://github.com/acidanthera/AppleALC) |
+| **LucyRTL8125Ethernet** | [Mieze](https://github.com/Mieze) | macOS driver for Realtek RTL8125 2.5 GbE NICs: [LucyRTL8125Ethernet](https://github.com/Mieze/LucyRTL8125Ethernet) |
+| **itlwm & HeliPort** | [OpenIntelWireless](https://github.com/OpenIntelWireless) | Intel Wi-Fi drivers and companion status bar UI: [itlwm](https://github.com/OpenIntelWireless/itlwm) & [HeliPort](https://github.com/OpenIntelWireless/HeliPort) |
+| **IntelBluetoothFirmware** | [OpenIntelWireless](https://github.com/OpenIntelWireless) | Intel Bluetooth firmware loader and kernel patchers: [IntelBluetoothFirmware](https://github.com/OpenIntelWireless/IntelBluetoothFirmware) |
+| **BlueToolFixup** | [Acidanthera](https://github.com/acidanthera) | Bluetooth stack compatibility provider: [BrcmPatchRAM](https://github.com/acidanthera/BrcmPatchRAM) |
+| **USBToolBox** | [USBToolBox](https://github.com/USBToolBox) | Cross-platform USB port mapping utility: [USBToolBox](https://github.com/USBToolBox/tool) |
+| **GenSMBIOS** | [CorpNewt](https://github.com/corpnewt) | Automated SMBIOS data generator: [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS) |
+| **ProperTree** | [CorpNewt](https://github.com/corpnewt) | Cross-platform GUI plist editor: [ProperTree](https://github.com/corpnewt/ProperTree) |
+| **Dortania Guides** | [Dortania](https://github.com/dortania) | Definitive OpenCore configuration documentation: [Dortania Guide](https://dortania.github.io/OpenCore-Install-Guide/) |
+
+---
+
+## 9. Maintenance & Changelog
+
+### [18-10-2026] — Complete Guide Re-Architecture & AMD Navi 10 Standardization
+- **Documentation Re-creation**: Fully restructured `README.md` as a definitive, clean step-by-step installation guide tailored for the ASUS PRIME Z590-P, Intel i5-11600K, and AMD Radeon RX 5700 XT.
+- **Legacy Purge**: Completely purged all legacy Maxwell / Nvidia / Web Driver references and obsolete root-patch workarounds, transitioning to a pure, native Metal 3 graphics configuration.
+- **Security Baseline**: Documented 100% native System Integrity Protection (SIP) standard (`csr-active-config: 00000000`) achievable with native AMD Navi 10 architecture and user-space Wi-Fi networking.
+- **Third-Party Attribution**: Added comprehensive credits and repository links for all third-party utilities, kexts, and community developers.

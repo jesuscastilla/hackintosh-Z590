@@ -250,10 +250,11 @@ def verify_image(dmgpath, cnkpath):
     print('Verifying image with chunklist...')
 
     with open(dmgpath, 'rb') as dmgf:
+        terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
         for cnkcount, (cnksize, cnkhash) in enumerate(verify_chunklist(cnkpath), 1):
-            terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
-            print(f'\r{f"Chunk {cnkcount} ({cnksize} bytes)":<{terminalsize}}', end='')
-            sys.stdout.flush()
+            if cnkcount % 100 == 1:
+                print(f'\r{f"Chunk {cnkcount} ({cnksize} bytes)":<{terminalsize}}', end='')
+                sys.stdout.flush()
             cnk = dmgf.read(cnksize)
             if len(cnk) != cnksize:
                 raise RuntimeError(f'Invalid chunk {cnkcount} size: expected {cnksize}, read {len(cnk)}')

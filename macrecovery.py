@@ -16,6 +16,7 @@ import shutil
 import struct
 import string
 import sys
+import time
 
 try:
     from urllib.request import Request, HTTPError, urlopen
@@ -220,27 +221,44 @@ def save_image(url, sess, filename='', directory=''):
                 break
         size = 0
         oldterminalsize = 0
+        last_print_time = 0
         while True:
             chunk = response.read(2**20)
             if not chunk:
                 break
             fh.write(chunk)
             size += len(chunk)
+
+            # Bolt: Throttle terminal updates to max 10 times per second for performance
+            current_time = time.time()
+            if current_time - last_print_time >= 0.1:
+                terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
+                if oldterminalsize != terminalsize:
+                    print(f'\r{"":<{terminalsize}}', end='')
+                    oldterminalsize = terminalsize
+                if totalsize > 0:
+                    progress = size / totalsize
+                    barwidth = terminalsize // 3
+                    print(f'\r{size / (2**20):.1f}/{totalsize / (2**20):.1f} MB ', end='')
+                    if terminalsize > 55:
+                        print(f'|{"=" * int(barwidth * progress):<{barwidth}}|', end='')
+                    print(f' {progress*100:.1f}% downloaded', end='')
+                else:
+                    # Fallback if Content-Length isn't available
+                    print(f'\r{size / (2**20)} MB downloaded...', end='')
+                sys.stdout.flush()
+                last_print_time = current_time
+
+        # Force a final print when done to ensure 100% is displayed
+        if totalsize > 0:
             terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
-            if oldterminalsize != terminalsize:
-                print(f'\r{"":<{terminalsize}}', end='')
-                oldterminalsize = terminalsize
-            if totalsize > 0:
-                progress = size / totalsize
-                barwidth = terminalsize // 3
-                print(f'\r{size / (2**20):.1f}/{totalsize / (2**20):.1f} MB ', end='')
-                if terminalsize > 55:
-                    print(f'|{"=" * int(barwidth * progress):<{barwidth}}|', end='')
-                print(f' {progress*100:.1f}% downloaded', end='')
-            else:
-                # Fallback if Content-Length isn't available
-                print(f'\r{size / (2**20)} MB downloaded...', end='')
-            sys.stdout.flush()
+            barwidth = terminalsize // 3
+            print(f'\r{totalsize / (2**20):.1f}/{totalsize / (2**20):.1f} MB ', end='')
+            if terminalsize > 55:
+                print(f'|{"=" * barwidth:<{barwidth}}|', end='')
+            print(f' 100.0% downloaded', end='')
+        else:
+            print(f'\r{size / (2**20)} MB downloaded...', end='')
         print('\nDownload complete!')
 
     return os.path.join(directory, os.path.basename(filename))
@@ -250,15 +268,28 @@ def verify_image(dmgpath, cnkpath):
     print('Verifying image with chunklist...')
 
     with open(dmgpath, 'rb') as dmgf:
+        last_print_time = 0
         for cnkcount, (cnksize, cnkhash) in enumerate(verify_chunklist(cnkpath), 1):
-            terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
-            print(f'\r{f"Chunk {cnkcount} ({cnksize} bytes)":<{terminalsize}}', end='')
-            sys.stdout.flush()
+            # Bolt: Throttle terminal updates to max 10 times per second for performance
+            current_time = time.time()
+            if current_time - last_print_time >= 0.1:
+                terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
+                print(f'\r{f"Chunk {cnkcount} ({cnksize} bytes)":<{terminalsize}}', end='')
+                sys.stdout.flush()
+                last_print_time = current_time
+
             cnk = dmgf.read(cnksize)
             if len(cnk) != cnksize:
                 raise RuntimeError(f'Invalid chunk {cnkcount} size: expected {cnksize}, read {len(cnk)}')
             if hashlib.sha256(cnk).digest() != cnkhash:
                 raise RuntimeError(f'Invalid chunk {cnkcount}: hash mismatch')
+
+        # Final print to show we finished
+        terminalsize = max(shutil.get_terminal_size().columns - TERMINAL_MARGIN, 0)
+        # Ensure cnkcount is defined in case loop never executed
+        final_count = cnkcount if 'cnkcount' in locals() else 0
+        print(f'\r{f"Chunk {final_count} (Completed)":<{terminalsize}}', end='')
+
         if dmgf.read(1) != b'':
             raise RuntimeError('Invalid image: larger than chunklist')
         print('\nImage verification complete!')

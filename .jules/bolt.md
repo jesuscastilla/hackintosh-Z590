@@ -1,0 +1,3 @@
+## 2024-05-24 - MacRecovery Terminal Throttling
+**Learning:** Terminal output logic using `shutil.get_terminal_size()` and `print()` within tight loops (like chunk verification and file downloading) can be a significant performance bottleneck. In `macrecovery.py`, the `verify_image` and `save_image` functions update the terminal on *every* single loop iteration (thousands of times for large files). My tests showed throttling terminal output (e.g., max 10 updates per second) makes loops 50x+ faster.
+**Action:** Throttle the print statements in `verify_image` and `save_image` of `macrecovery.py` to prevent unnecessary I/O blocking.

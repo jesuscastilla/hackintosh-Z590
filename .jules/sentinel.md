@@ -1,0 +1,4 @@
+## 2026-10-21 - [Fix unencrypted HTTP requests in macrecovery.py]
+**Vulnerability:** System recovery images and diagnostic payloads were being downloaded over unencrypted HTTP connections (`http://osrecovery.apple.com`), making them susceptible to Man-in-the-Middle (MITM) attacks where the downloaded files could be intercepted or tampered with.
+**Learning:** Legacy scripts or endpoints are sometimes left utilizing HTTP protocols when they have full support for HTTPS. External dependencies or payload URLs must be explicitly validated for transport layer security.
+**Prevention:** Always verify external endpoints and URLs within scripts to ensure they use encrypted connections (HTTPS) by default. Use linters or automated scanning tools to detect hardcoded `http://` URLs that might refer to secure services.

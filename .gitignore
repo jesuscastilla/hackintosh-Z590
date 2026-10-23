@@ -15,6 +15,10 @@ vars/
 Thumbs.db
 desktop.ini
 
+# --- Local config with real SMBIOS credentials (NEVER commit) ---
+config.local.plist
+smbios.env
+
 # --- Rules files (Cline / AI agent) ---
 .clinerules/
 .clinerules.md

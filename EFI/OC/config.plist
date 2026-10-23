@@ -318,6 +318,19 @@
 	<dict>
 		<key>Add</key>
 		<dict>
+			<key>PciRoot(0x0)/Pci(0x2,0x0)</key>
+			<dict>
+				<key>disable-gpu</key>
+				<data>
+				AQAAAA==
+				</data>
+				<key>name</key>
+				<string>#display</string>
+				<key>class-code</key>
+				<data>
+				/////w==
+				</data>
+			</dict>
 			<key>PciRoot(0x0)/Pci(0x1C,0x7)/Pci(0x0,0x0)</key>
 			<dict>
 				<key>built-in</key>
@@ -1184,9 +1197,9 @@
 		<key>Quirks</key>
 		<dict>
 			<key>AppleCpuPmCfgLock</key>
-			<true/>
+			<false/>
 			<key>AppleXcpmCfgLock</key>
-			<true/>
+			<false/>
 			<key>AppleXcpmExtraMsrs</key>
 			<false/>
 			<key>AppleXcpmForceBoost</key>
@@ -1267,7 +1280,7 @@
 			<key>PickerAudioAssist</key>
 			<false/>
 			<key>PickerMode</key>
-			<string>Builtin</string>
+			<string>External</string>
 			<key>PickerVariant</key>
 			<string>Auto</string>
 			<key>PollAppleHotKeys</key>
@@ -1492,7 +1505,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 agdpmod=pikera unfairgva=1 -lilubetaall -alcbeta -btfxbeta shda-lang=es itlwm_cc=ES</string>
+				<string>keepsyms=1 debug=0x100 alcid=11 amfi=0x80 agdpmod=pikera unfairgva=1 shda-lang=es itlwm_cc=ES</string>
 				<key>csr-active-config</key>
 				<data>
 				AwoAAA==
@@ -1571,14 +1584,14 @@
 			<key>AdviseFeatures</key>
 			<true/>
 			<key>MLB</key>
-			<string>C02117301GUPHC1UE</string>
+			<string>REPLACE_WITH_YOUR_MLB</string>
 			<key>MaxBIOSVersion</key>
 			<false/>
 			<key>ProcessorType</key>
 			<integer>0</integer>
 			<key>ROM</key>
 			<data>
-			/DSXpsLq
+			AAAAAAAA
 			</data>
 			<key>SpoofVendor</key>
 			<true/>
@@ -1587,9 +1600,9 @@
 			<key>SystemProductName</key>
 			<string>iMac20,1</string>
 			<key>SystemSerialNumber</key>
-			<string>C02FM7YEPN5T</string>
+			<string>REPLACE_WITH_YOUR_SERIAL</string>
 			<key>SystemUUID</key>
-			<string>CBAEF17D-3845-4402-BEF8-13EFA741A0C0</string>
+			<string></string>
 		</dict>
 		<key>UpdateDataHub</key>
 		<true/>
@@ -1704,6 +1717,20 @@
 				<false/>
 				<key>Path</key>
 				<string>OpenRuntime.efi</string>
+			</dict>
+			<dict>
+				<key>Arguments</key>
+				<string></string>
+				<key>Comment</key>
+				<string></string>
+				<key>Enabled</key>
+				<true/>
+				<key>HideVerbose</key>
+				<false/>
+				<key>LoadEarly</key>
+				<false/>
+				<key>Path</key>
+				<string>OpenCanopy.efi</string>
 			</dict>
 			<dict>
 				<key>Arguments</key>

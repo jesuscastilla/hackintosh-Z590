@@ -1344,7 +1344,7 @@
 			<data>
 			</data>
 			<key>ScanPolicy</key>
-			<integer>262400</integer>
+			<integer>17760515</integer>
 			<key>SecureBootModel</key>
 			<string>Disabled</string>
 			<key>Vault</key>
@@ -1492,7 +1492,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 debug=0x100 alcid=11 amfi=0x80 agdpmod=pikera unfairgva=1 -lilubetaall -alcbeta -btfxbeta shda-lang=es itlwm_cc=ES itlwm_he=1</string>
+				<string>keepsyms=1 debug=0x100 alcid=11 amfi=0x80 agdpmod=pikera unfairgva=1 -lilubetaall -alcbeta -btfxbeta shda-lang=es itlwm_cc=ES itlwm_he=1</string>
 				<key>csr-active-config</key>
 				<data>
 				AwoAAA==

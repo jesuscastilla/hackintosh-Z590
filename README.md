@@ -6,6 +6,15 @@ This configuration is built with **OpenCore 1.0.8**, utilizing native Comet Lake
 
 ---
 
+## Legal Disclaimer & Notice
+
+> [!WARNING]
+> **Installing macOS on non-Apple hardware violates Apple's End User License Agreement (EULA, Section 2.J)**, which legally restricts macOS solely to Apple-branded computers. Creating or operating a Hackintosh may also infringe upon Apple copyright and intellectual property rights and may be deemed unlawful or restricted depending on your jurisdiction.
+>
+> This repository, guides, and configuration assets are provided **strictly for educational, research, and non-commercial experimental purposes**. The author and contributors do not condone, promote, or encourage software piracy or license infringement, and assume absolutely no liability or responsibility for any damages, hardware failure, data loss, or legal consequences resulting from the use or misuse of this information. Proceed strictly at your own discretion and risk.
+
+---
+
 ## Hardware Specifications
 
 | Component | Hardware Model & Specification | OpenCore / macOS Role |
@@ -17,7 +26,7 @@ This configuration is built with **OpenCore 1.0.8**, utilizing native Comet Lake
 | **RAM** | 32 GB DDR4 3200 MHz (Dual Channel) | Standard XMP Profile 1 enabled |
 | **Storage** | Samsung 970 PRO / 860 EVO (NVMe M.2 / SATA SSD) | APFS container with `NVMeFix.kext` optimization |
 | **Ethernet** | Realtek RTL8125 2.5 Gbps PCIe Controller | Native 2.5 GbE networking mapped to `en0` via `LucyRTL8125Ethernet.kext` |
-| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi 802.11ax) | Injected via `AirportItlwm.kext` (v2.4.0 Tahoe, experimental) |
+| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi 802.11ax) | Temporarily disabled in `config.plist` (v2.4.0 Tahoe experimental; wired 2.5 GbE recommended) |
 | **Bluetooth** | Intel AX201 Bluetooth 5.2 | Firmware injected via `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
 | **Audio** | Realtek ALC897 High Definition Audio | `AppleALC.kext` (layout-id 11) + `SimpleHDA.kext` / HAL driver |
 | **SMBIOS** | `iMac20,1` (Retina 5K, 27-inch, 2020) | Best match for 10th/11th Gen Intel Core + AMD Navi 10 |
@@ -51,8 +60,7 @@ This configuration contains key settings specifically required to boot macOS 26 
 
 ```text
 Hackintosh/
-├── Docs/
-│   └── INSTRUCCIONES_RX5700XT.md     # Dedicated guide for GPU swap & iServices cache flush
+├── Docs/                             # Technical references and diagnostics documentation
 ├── EFI/
 │   ├── BOOT/
 │   │   └── BOOTx64.efi               # OpenCore fallback bootloader
@@ -84,13 +92,17 @@ Hackintosh/
 │       │   ├── VirtualSMC.kext       # Apple SMC hardware emulator
 │       │   └── WhateverGreen.kext    # AMD Navi 10 video initialization (agdpmod=pikera)
 │       └── config.plist              # OpenCore 1.0.8 master configuration
+│   └── refind/                       # rEFInd multi-boot menu (Windows, macOS, GBOS)
+│       ├── refind.conf               # Multi-boot configuration with strict manual stanzas
+│       └── ...                       # Drivers, icons, and glassy visual theme
 ├── SSDTs/                            # Compiled ACPI AML reference files
 ├── Utilities/
 │   ├── macrecovery.py                # Apple Recovery image downloader
 │   ├── macserial.exe                 # SMBIOS serial number generator
 │   ├── ocvalidate.exe                # OpenCore configuration validator
 │   ├── Set-Refind.ps1                # Dual-boot UEFI entry configuration script
-│   └── SimpleHDA-HAL-1.0.0.pkg       # Audio HAL plugin installer for macOS 26
+│   ├── SimpleHDA-HAL-1.0.0.pkg       # Audio HAL plugin installer for macOS 26
+│   └── Validate-EFI.ps1              # Automated OpenCore EFI verification suite
 ├── .gitignore
 └── README.md
 ```
@@ -277,7 +289,7 @@ To boot macOS independently without the USB drive:
 
 ### 4. Wi-Fi & Bluetooth Status under macOS 26 (Tahoe)
 * **Bluetooth**: Onboard Intel AX201 Bluetooth 5.2 is fully operational via `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`. Devices such as AirPods, Magic Mouse, and wireless keyboards pair and function smoothly.
-* **Wi-Fi**: The onboard Intel Wi-Fi 6 AX201 is injected via `AirportItlwm.kext` (v2.4.0 Tahoe). Note that driver support for the Intel CNVi Wi-Fi card under macOS 26 Tahoe is in active community development and may exhibit connection drops or operate limited to 2.4 GHz bands. **The wired 2.5 GbE Ethernet connection (`en0`) is strongly recommended for high-bandwidth and production stability.**
+* **Wi-Fi**: The onboard Intel Wi-Fi 6 AX201 driver (`AirportItlwm.kext` v2.4.0 Tahoe) is currently disabled in `config.plist` due to a known kernel ioctl incompatibility during boot in macOS 26 Tahoe. Driver support for Intel CNVi Wi-Fi under macOS 26 Tahoe is in active community development. **The wired 2.5 GbE Ethernet connection (`en0`) is strongly recommended for high-bandwidth and production stability.**
 
 ---
 

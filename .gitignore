@@ -19,7 +19,11 @@ desktop.ini
 config.local.plist
 smbios.env
 
-# --- Rules files (Cline / AI agent) ---
+# --- Workspace, IDE & Local Rules Configuration ---
+.agents/
+.vscode/
+.idea/
+.cursor/
 .clinerules/
 .clinerules.md
 .cline/
@@ -27,7 +31,6 @@ smbios.env
 .cursorrules
 rules.md
 RULES.md
-.agents/rules
 
 # --- Large OS Installers & Packages (>100MB GitHub limit) ---
 SonomaInstaller/
@@ -61,4 +64,3 @@ __pycache__/
 *.pyo
 *.pyd
 scratch_*.py
-.vscode/settings.json

@@ -85,6 +85,27 @@ Repo re-sync done:
 - `EFI/OC/config.local.plist` ← live ESP config (sha256 `9e63914e…`), `plutil -lint` OK.
 - 4 new kexts copied into `EFI/OC/Kexts/`.
 - Public `EFI/OC/config.plist` aligned & sanitized (MLB/SysSerial = `REPLACE_WITH_YOUR_…`, ROM = 6 zero bytes, UUID empty) — redacted diff vs live = empty.
+
+## Part D — Recovery after failed boot (2026-10-24)
+
+- The WiFiPatcherPro/OCLP patched config **does not boot**: hangs at `IOUserDockChannelSerial waiting for server` + `SimpleHDA: AppleHDA failed (0xdc008008)` → watchdog panic. Same hang as with plain `AirportItlwm` enabled.
+- Disk renumbering shifted after USB boot (macOS ESP is now `disk2s1`, not `disk1s1`). ESP intact.
+- Running system = original sealed snapshot `FCA457EF` (OCLP bless snapshot gone) → system clean.
+- Repo reverted to pre-patch (`0195d31c…`), patched variant preserved in `~/hack-backups/wifipatcherpro-variant/` (config only; kexts recoverable from the app zip).
+
+## Part E — Wi-Fi retry + HE + TRIM (2026-10-24)
+
+- Re-enabled `AirportItlwm` (Sequoia 2.4.0-alpha) in both configs (`Enabled=true`).
+- `boot-args` += `itlwm_he=1` (802.11ax/HE → aim 160 MHz).
+- `Kernel→Quirks→SetApfsTrimTimeout = -1` (disable APFS TRIM at boot → faster boot; NVMeFix handles TRIM in background).
+- `SimpleHDA`/`AppleALC` remain disabled (removes the suspected hang chain). HDMI/DP audio via `AppleGFXHDA`.
+- Note: HDMI/DP volume slider is fixed by design (no software volume) — expected, control volume on the monitor/speakers.
+- Risk: `AirportItlwm` previously hung boot when `SimpleHDA` was present; retesting with audio kexts removed. Rescue USB ready.
+
+- `SimpleHDA` + `AppleALC` disabled in `config.local.plist` and `config.plist` (HDMI audio goes via `AppleGFXHDA`, which is detected as default output).
+- HDMI/DP audio of the GPU is fully attached (default output, 48 kHz) but silent per user; monitor is Samsung LU28R55 (likely no built-in speakers — only 3.5 mm out). Connector detected as DP (`connector-type=0x800`) with HDMI cable.
+- Pending: restore ESP (disk2s1) to pre-patch + SimpleHDA/AppleALC-off, reboot, then re-approach Wi-Fi.
+
 - Rescue USB intentionally keeps the pre-patch (rollback) EFI.
 
 - Pending: `sudo diskutil mount disk1s1` → inspect patched config → re-sync repo `config.local.plist`.
@@ -96,3 +117,12 @@ Repo re-sync done:
 - Boot via ASUS F8/F12 menu → pick the USB → OpenCore.
 
 
+
+## Final working state (2026-10-25)
+
+- Wi-Fi: `AirportItlwm 2.4.0` (Sequoia) — **802.11ax HE160, ch 36, Tx 2401 Mbps, MCS 11**.
+- `boot-args`: `... itlwm_cc=ES itlwm_he=1` (no `-amfipassbeta`).
+- `SimpleHDA` + `AppleALC` disabled; HDMI/DP audio via `AppleGFXHDA` (volume fixed by design).
+- `SetApfsTrimTimeout = 1`.
+- Removed OCLP kexts: `IOSkywalkFamily`, `IO80211FamilyLegacy`, `AMFIPass`, `BlueWakeFixup`.
+- Router: 5 GHz ch 36 @ 160 MHz, MLO off (was ch 149 + MLO -> blocked ES 5 GHz).

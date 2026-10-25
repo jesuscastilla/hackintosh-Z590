@@ -26,7 +26,7 @@ This configuration is built with **OpenCore 1.0.8**, utilizing native Comet Lake
 | **RAM** | 32 GB DDR4 3200 MHz (Dual Channel) | Standard XMP Profile 1 enabled |
 | **Storage** | Samsung 970 PRO / 860 EVO (NVMe M.2 / SATA SSD) | APFS container with `NVMeFix.kext` optimization |
 | **Ethernet** | Realtek RTL8125 2.5 Gbps PCIe Controller | Native 2.5 GbE networking mapped to `en0` via `LucyRTL8125Ethernet.kext` |
-| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi 802.11ax) | Temporarily disabled in `config.plist` (v2.4.0 Tahoe experimental; wired 2.5 GbE recommended) |
+| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi 802.11ax) | Injected & Enabled via `AirportItlwm.kext` (v2.4.0 Tahoe, 802.11ax HE160 via `itlwm_cc=ES itlwm_he=1`) |
 | **Bluetooth** | Intel AX201 Bluetooth 5.2 | Firmware injected via `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
 | **Audio** | Realtek ALC897 High Definition Audio | `AppleALC.kext` (layout-id 11) + `SimpleHDA.kext` / HAL driver |
 | **SMBIOS** | `iMac20,1` (Retina 5K, 27-inch, 2020) | Best match for 10th/11th Gen Intel Core + AMD Navi 10 |
@@ -289,7 +289,7 @@ To boot macOS independently without the USB drive:
 
 ### 4. Wi-Fi & Bluetooth Status under macOS 26 (Tahoe)
 * **Bluetooth**: Onboard Intel AX201 Bluetooth 5.2 is fully operational via `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`. Devices such as AirPods, Magic Mouse, and wireless keyboards pair and function smoothly.
-* **Wi-Fi**: The onboard Intel Wi-Fi 6 AX201 driver (`AirportItlwm.kext` v2.4.0 Tahoe) is currently disabled in `config.plist` due to a known kernel ioctl incompatibility during boot in macOS 26 Tahoe. Driver support for Intel CNVi Wi-Fi under macOS 26 Tahoe is in active community development. **The wired 2.5 GbE Ethernet connection (`en0`) is strongly recommended for high-bandwidth and production stability.**
+* **Wi-Fi**: Onboard Intel Wi-Fi 6 AX201 is fully enabled and injected via `AirportItlwm.kext` (v2.4.0 Tahoe). Configured in `boot-args` with `itlwm_cc=ES itlwm_he=1` supporting 802.11ax HE160 channel bandwidth. Wired 2.5 GbE Ethernet (`en0`) is also natively operational.
 
 ---
 

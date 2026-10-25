@@ -27,6 +27,7 @@ smbios.env
 .cursorrules
 rules.md
 RULES.md
+.agents/rules
 
 # --- Large OS Installers & Packages (>100MB GitHub limit) ---
 SonomaInstaller/

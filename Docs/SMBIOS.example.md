@@ -7,7 +7,7 @@ Before booting macOS, you **must** generate and inject your own unique values.
 
 ```powershell
 cd G:\Hackintosh\Utilities
-.\macserial.exe -m "iMac20,1" -n 1
+.\macserial.exe -m "MacPro7,1" -n 1
 ```
 
 This outputs a line in the format: `SystemSerialNumber | MLB`  
@@ -45,7 +45,7 @@ Open `EFI/OC/config.plist` and replace the placeholders under **PlatformInfo →
 
 | Key | Value |
 |---|---|
-| `SystemProductName` | `iMac20,1` (already set) |
+| `SystemProductName` | `MacPro7,1` (already set) |
 | `SystemSerialNumber` | Your generated serial |
 | `MLB` | Your generated MLB (17 characters) |
 | `SystemUUID` | Your generated UUID |

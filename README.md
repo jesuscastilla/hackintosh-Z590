@@ -22,14 +22,14 @@ This configuration is built with **OpenCore 1.0.8**, utilizing native Comet Lake
 | **Motherboard** | ASUS PRIME Z590-P WIFI (LGA1200, Intel Z590 Chipset) | UEFI firmware with custom DSDT ACPI patches |
 | **CPU** | Intel Core i5-11600K (Rocket Lake, 6 Cores / 12 Threads @ 3.9–4.9 GHz) | Comet Lake spoof (`0x0A0655`) via `Kernel -> Emulate` |
 | **GPU** | AMD Radeon RX 5700 XT 8 GB GDDR6 (Navi 10 Architecture) | **100% Native Metal 3 acceleration** (`agdpmod=pikera`) |
-| **iGPU** | Intel UHD Graphics 750 | Disabled via `DeviceProperties` (`disable-gpu = 01000000`) |
+| **iGPU** | Intel UHD Graphics 750 | Disabled in BIOS (no macOS driver for Rocket Lake iGPU) |
 | **RAM** | 32 GB DDR4 3200 MHz (Dual Channel) | Standard XMP Profile 1 enabled |
-| **Storage** | Samsung 970 PRO / 860 EVO (NVMe M.2 / SATA SSD) | APFS container with `NVMeFix.kext` optimization |
+| **Storage** | Samsung 990 PRO 1 TB NVMe (macOS + Windows) / Samsung 970 PRO 512 GB (datos) | APFS container with `NVMeFix.kext` optimization |
 | **Ethernet** | Realtek RTL8125 2.5 Gbps PCIe Controller | Native 2.5 GbE networking mapped to `en0` via `LucyRTL8125Ethernet.kext` |
-| **Wi-Fi** | Intel Wi-Fi 6 AX201 (CNVi 802.11ax) | Injected & Enabled via `AirportItlwm.kext` (v2.4.0 Tahoe, 802.11ax HE160 via `itlwm_cc=ES itlwm_he=1`) |
-| **Bluetooth** | Intel AX201 Bluetooth 5.2 | Firmware injected via `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
+| **Wi-Fi** | Qualcomm WCN7850 (FastConnect 7800 / NCM865) PCIe | `AirportWCN7850.kext` v0.0.2: 2.4/5 GHz, 802.11ac **VHT80**, WPA2-PSK/CCMP only (no 6 GHz, no AX/BE, no WPA3) |
+| **Bluetooth** | Qualcomm WCN7850 Bluetooth 5.x (USB) | `BluetoothWCN7850.kext` + `IntelBTPatcher` (LE shim) + `BlueToolFixup` |
 | **Audio** | Realtek ALC897 High Definition Audio | `AppleALC.kext` (layout-id 11) + `SimpleHDA.kext` / HAL driver |
-| **SMBIOS** | `iMac20,1` (Retina 5K, 27-inch, 2020) | Best match for 10th/11th Gen Intel Core + AMD Navi 10 |
+| **SMBIOS** | `MacPro7,1` (Mac Pro, 2019) | Best match for Rocket Lake + AMD Navi 10 on macOS 26 (Tahoe) |
 
 ---
 
@@ -43,7 +43,7 @@ This configuration contains key settings specifically required to boot macOS 26 
    * Setting `Booter -> Quirks -> ResizeAppleGpuBars = 0` forces OpenCore to cap the GPU BAR for macOS to standard size, eliminating the boot stall while keeping ReBAR enabled in BIOS for Windows.
 
 2. **Apple Security Enforcement (`SecureBootModel = Disabled`)**:
-   * macOS 26 enforces Apple T2 security verification when using the `iMac20,1` SMBIOS profile.
+   * macOS 26 enforces Apple T2 security verification when using the `MacPro7,1` SMBIOS profile.
    * Because non-Apple motherboards lack a physical Apple T2 silicon chip, setting `SecureBootModel` to anything other than `Disabled` triggers a Type 14 Page Fault or Type 13 General Protection kernel panic during boot.
 
 3. **Audio Subsystem in macOS 26 Tahoe (`SimpleHDA.kext` & `amfi=0x80`)**:
@@ -76,14 +76,16 @@ Hackintosh/
 │       │   ├── OpenRuntime.efi       # Mandatory OpenCore NVRAM & memory management runtime
 │       │   └── ResetNvramEntry.efi   # Boot menu entry to clear NVRAM
 │       ├── Kexts/
-│       │   ├── AirportItlwm.kext     # Intel Wi-Fi driver (v2.4.0 Tahoe)
+│       │   ├── AirportWCN7850.kext   # Qualcomm WCN7850 Wi-Fi driver (v0.0.2, 802.11ac VHT80)
 │       │   ├── AppleALC.kext         # Realtek ALC897 audio patcher (alcid=11)
+│       │   ├── AppleMCEReporterDisabler.kext # Disables AppleMCEReporter for MacPro7,1
 │       │   ├── BlueToolFixup.kext    # Bluetooth compatibility framework
-│       │   ├── IntelBluetoothFirmware.kext # Intel AX201 Bluetooth firmware loader
-│       │   ├── IntelBTPatcher.kext   # Intel Bluetooth kernel extension patcher
+│       │   ├── BluetoothWCN7850.kext # Qualcomm WCN7850 Bluetooth driver
+│       │   ├── IntelBTPatcher.kext   # Bluetooth LE scan shim (reused for WCN7850)
 │       │   ├── Lilu.kext             # Core kernel and kext patcher
 │       │   ├── LucyRTL8125Ethernet.kext # Realtek RTL8125 2.5 GbE network driver
 │       │   ├── NVMeFix.kext          # Autonomous power state transition (APST) for NVMe SSDs
+│       │   ├── RestrictEvents.kext   # Blocks MacPro7,1 memory/notification alerts
 │       │   ├── SimpleHDA.kext        # Audio driver for macOS 26 Tahoe AppleHDA restoration
 │       │   ├── SMCProcessor.kext     # CPU temperature and frequency monitoring
 │       │   ├── SMCSuperIO.kext       # Motherboard sensor and fan telemetry
@@ -92,7 +94,7 @@ Hackintosh/
 │       │   ├── VirtualSMC.kext       # Apple SMC hardware emulator
 │       │   └── WhateverGreen.kext    # AMD Navi 10 video initialization (agdpmod=pikera)
 │       └── config.plist              # OpenCore 1.0.8 master configuration
-│   └── refind/                       # rEFInd multi-boot menu (Windows, macOS, GBOS)
+│   └── refind/                       # rEFInd multi-boot menu (Windows, macOS, USB)
 │       ├── refind.conf               # Multi-boot configuration with strict manual stanzas
 │       └── ...                       # Drivers, icons, and glassy visual theme
 ├── SSDTs/                            # Compiled ACPI AML reference files
@@ -141,7 +143,7 @@ To use iCloud, the App Store, and iServices without account conflicts, generate 
 1. Open PowerShell inside the `Utilities\` folder:
    ```powershell
    cd G:\Hackintosh\Utilities
-   .\macserial.exe -m "iMac20,1" -n 1
+   .\macserial.exe -m "MacPro7,1" -n 1
    ```
    This will output a line formatted as `SystemSerialNumber | MLB` (e.g. `C02GN8ZLPN5T | C02145700GUPHC1UE`).
 
@@ -153,7 +155,7 @@ To use iCloud, the App Store, and iServices without account conflicts, generate 
 3. Obtain your physical Realtek 2.5 GbE MAC address (e.g. `FC:34:97:A6:C2:EA`).
 
 4. Open `EFI/OC/config.plist` using ProperTree or a text editor and enter these values under **PlatformInfo -> Generic**:
-   * `SystemProductName`: `iMac20,1`
+   * `SystemProductName`: `MacPro7,1`
    * `SystemSerialNumber`: Your generated serial number
    * `MLB`: Your generated MLB board serial (17 characters)
    * `SystemUUID`: Your generated UUID
@@ -288,8 +290,9 @@ To boot macOS independently without the USB drive:
   Reboot the system; macOS will recreate the database and bind the built-in Realtek 2.5 GbE adapter as `en0`.
 
 ### 4. Wi-Fi & Bluetooth Status under macOS 26 (Tahoe)
-* **Bluetooth**: Onboard Intel AX201 Bluetooth 5.2 is fully operational via `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`. Devices such as AirPods, Magic Mouse, and wireless keyboards pair and function smoothly.
-* **Wi-Fi**: Onboard Intel Wi-Fi 6 AX201 is fully enabled and injected via `AirportItlwm.kext` (v2.4.0 Tahoe). Configured in `boot-args` with `itlwm_cc=ES itlwm_he=1` supporting 802.11ax HE160 channel bandwidth. Wired 2.5 GbE Ethernet (`en0`) is also natively operational.
+* **Wi-Fi**: Qualcomm WCN7850 (FastConnect 7800) via `AirportWCN7850.kext` v0.0.2 — 2.4/5 GHz, 802.11ac VHT80, WPA2-PSK/CCMP. **Limitations:** no 6 GHz, no 802.11ax/be, no 160/320 MHz, no MLO, no WPA3/SAE, no AirDrop/AWDL. Wi-Fi 7 (6 GHz + WPA3) SSIDs are not visible to this driver. Use a 5 GHz WPA2-PSK SSID at 80 MHz (channels 36–48) for best results.
+* **Bluetooth**: Qualcomm WCN7850 via `BluetoothWCN7850.kext` + `IntelBTPatcher` + `BlueToolFixup`. Devices such as AirPods, Magic Mouse, and wireless keyboards pair and function.
+* **Ethernet**: Wired 2.5 GbE (`en0`, RTL8125) is the most reliable network path for this desktop.
 
 ---
 
@@ -297,7 +300,8 @@ To boot macOS independently without the USB drive:
 
 * [Acidanthera](https://github.com/acidanthera) — OpenCorePkg, Lilu, WhateverGreen, VirtualSMC, AppleALC, NVMeFix, BrcmPatchRAM
 * [Mieze](https://github.com/Mieze) — LucyRTL8125Ethernet driver
-* [OpenIntelWireless](https://github.com/OpenIntelWireless) & [laobamac](https://github.com/laobamac) — Intel Bluetooth & AirportItlwm drivers
+* [OpenIntelWireless](https://github.com/OpenIntelWireless) & [laobamac](https://github.com/laobamac) — AirportItlwm stack
+* [razvanccr](https://github.com/razvanccr) — AirportWCN7850 & BluetoothWCN7850 (Qualcomm WCN7850 drivers)
 * [CorpNewt](https://github.com/corpnewt) — ProperTree, GenSMBIOS
 * [Dortania](https://github.com/dortania) — OpenCore Installation documentation
 * [SimpleHDA](https://github.com) — macOS Tahoe AppleHDA restoration driver and HAL plugin
